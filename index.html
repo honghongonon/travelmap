@@ -98,7 +98,7 @@ svg.map.dragging { cursor: grabbing; }
 .panel { background: var(--panel); border-left: 1px solid var(--panel-line); display: flex; flex-direction: column; min-height: 0; z-index: 4; }
 .handle { display: none; }
 .peek { display: none; }
-.pbody { overflow: auto; padding: 20px 20px 28px; display: grid; gap: 22px; align-content: start; }
+.pbody { flex: 1; min-height: 0; overflow: auto; padding: 20px 20px 28px; display: grid; gap: 22px; align-content: start; }
 .eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); }
 .rname { margin: 2px 0 0; font-family: var(--font-hand); font-weight: 700; font-size: 40px; line-height: 1.05; text-wrap: balance; }
 .headrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
@@ -162,20 +162,28 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
   .search { width: min(150px, 40vw); }
   .search input { padding: 7px 12px; }
   .brand p { display: none; }
-  .panel { position: fixed; left: 0; right: 0; bottom: 0; border-left: 0; border-top: 1px solid var(--panel-line); border-radius: 20px 20px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,.15); max-height: 64%; padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .handle { display: block; border: 0; background: none; padding: 8px 0 2px; }
+  .panel { --peek-h: 78px; position: fixed; left: 0; right: 0; bottom: 0; height: min(74dvh, 680px); border-left: 0; border-top: 1px solid var(--panel-line); border-radius: 20px 20px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,.15); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; transform: translateY(calc(100% - var(--peek-h) - env(safe-area-inset-bottom, 0px))); transition: transform .38s cubic-bezier(.32,.72,0,1); will-change: transform; }
+  .panel.open { transform: translateY(0); }
+  .panel.dragging { transition: none; }
+  .handle { display: block; width: 100%; border: 0; background: none; padding: 10px 0 4px; touch-action: none; cursor: grab; }
+  .peek { touch-action: none; }
+  .toast { top: 70px; bottom: auto; }
   .handle i { display: block; width: 40px; height: 4px; border-radius: 9px; background: var(--panel-line); margin: 0 auto; }
   .peek { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 4px 20px 14px; border: 0; background: none; text-align: left; width: 100%; }
   .peek b { font-family: var(--font-hand); font-size: 24px; }
   .peek span { color: var(--muted); font-size: 12.5px; }
-  .panel:not(.open) .pbody { display: none; }
+  .panel:not(.open) .pbody { visibility: hidden; transition: visibility 0s .38s; }
   .panel.open .peek { display: none; }
   .pbody { padding-top: 6px; }
   .zoom { bottom: 96px; }
   .legend { bottom: 96px; padding: 6px 10px; gap: 10px; font-size: 11.5px; }
   .rname { font-size: 34px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@keyframes swapIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.pbody.swap > * { animation: swapIn .26s cubic-bezier(.2,.7,.2,1) both; }
+.pbody.swap > *:nth-child(2) { animation-delay: .03s; } .pbody.swap > *:nth-child(3) { animation-delay: .06s; } .pbody.swap > *:nth-child(n+4) { animation-delay: .09s; }
+.toast { animation: swapIn .2s ease-out; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 
 <div class="app">
@@ -302,8 +310,30 @@ const firebaseConfig = {
     const top = 70;
     const s = Math.min(W / MAP.w, (H - top) / MAP.h) * 0.96;
     fitS = s;
-    view = { s, x: (W - MAP.w * s) / 2, y: top + (H - top - MAP.h * s) / 2 };
-    apply();
+    const target = { s, x: (W - MAP.w * s) / 2, y: top + (H - top - MAP.h * s) / 2 };
+    if (animate) animateTo(target); else { stopAnim(); view = target; apply(); }
+  }
+  let anim = 0;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function stopAnim() { if (anim) { cancelAnimationFrame(anim); anim = 0; } }
+  function animateTo(target, ms = 460) {
+    stopAnim();
+    if (reduceMotion.matches) { view = { ...target }; apply(); return; }
+    const W = stage.clientWidth / 2, H = stage.clientHeight / 2;
+    const from = { ...view };
+    const c0 = { x: (W - from.x) / from.s, y: (H - from.y) / from.s };
+    const c1 = { x: (W - target.x) / target.s, y: (H - target.y) / target.s };
+    const t0 = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / ms);
+      const e = 1 - Math.pow(1 - t, 3);
+      const s = from.s * Math.pow(target.s / from.s, e);
+      const cx = c0.x + (c1.x - c0.x) * e, cy = c0.y + (c1.y - c0.y) * e;
+      view = { s, x: W - cx * s, y: H - cy * s };
+      apply();
+      anim = t < 1 ? requestAnimationFrame(step) : 0;
+    };
+    anim = requestAnimationFrame(step);
   }
   let labelRaf = 0;
   function apply() {
@@ -330,20 +360,19 @@ const firebaseConfig = {
       l.style.strokeWidth = (3 / view.s) + 'px';
     }
   }
-  function zoomAt(factor, cx, cy) {
+  function zoomAt(factor, cx, cy, animate) {
     const ns = Math.max(fitS * 0.8, Math.min(fitS * 14, view.s * factor));
     const k = ns / view.s;
-    view.x = cx - (cx - view.x) * k;
-    view.y = cy - (cy - view.y) * k;
-    view.s = ns;
-    apply();
+    const target = { s: ns, x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k };
+    if (animate) animateTo(target, 300); else { stopAnim(); view = target; apply(); }
   }
   function center() { return [stage.clientWidth / 2, (stage.clientHeight - bottomInset()) / 2]; }
-  $('zin').onclick = () => zoomAt(1.5, ...center());
-  $('zout').onclick = () => zoomAt(1 / 1.5, ...center());
-  $('zfit').onclick = () => fit();
+  $('zin').onclick = () => zoomAt(1.6, ...center(), true);
+  $('zout').onclick = () => zoomAt(1 / 1.6, ...center(), true);
+  $('zfit').onclick = () => fit(true);
   svg.addEventListener('wheel', (e) => {
     e.preventDefault();
+    stopAnim();
     const rect = svg.getBoundingClientRect();
     zoomAt(Math.exp(-e.deltaY * 0.0018), e.clientX - rect.left, e.clientY - rect.top);
   }, { passive: false });
@@ -351,6 +380,7 @@ const firebaseConfig = {
   const pointers = new Map();
   let dragStart = null, moved = 0, pinch = null;
   svg.addEventListener('pointerdown', (e) => {
+    stopAnim();
     svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) { dragStart = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }; moved = 0; }
@@ -389,7 +419,8 @@ const firebaseConfig = {
       if (moved <= 4 && e.type === 'pointerup') {
         const hit = document.elementFromPoint(e.clientX, e.clientY);
         const p = hit && hit.closest && hit.closest('.rg');
-        if (p) select(p.dataset.c, false);
+        if (p) openRegion(p.dataset.c, false);
+        else if (selected || (isMobile() && $('panel').classList.contains('open'))) goBack();
       }
       dragStart = null;
     } else if (pointers.size === 1) {
@@ -400,21 +431,18 @@ const firebaseConfig = {
   svg.addEventListener('pointerup', endPointer);
   svg.addEventListener('pointercancel', endPointer);
 
-  function focusRegion(c) {
+  function focusRegion(c, allowZoom) {
     const b = bbox[c];
     const W = stage.clientWidth;
     let H = stage.clientHeight - bottomInset();
-    if (bottomInset() && $('panel').classList.contains('open')) H = Math.max(160, $('panel').getBoundingClientRect().top - stage.getBoundingClientRect().top);
+    if (isMobile() && $('panel').classList.contains('open')) H = Math.max(160, stage.clientHeight - $('panel').offsetHeight);
     const sx = b.x * view.s + view.x, sy = b.y * view.s + view.y;
     const sw = b.width * view.s, sh = b.height * view.s;
     let s = view.s;
-    if (sw < 70 && sh < 70) s = Math.min(fitS * 14, Math.min(W, H) * 0.35 / Math.max(b.width, b.height));
+    if (allowZoom && sw < 70 && sh < 70) s = Math.min(fitS * 14, Math.min(W, H) * 0.35 / Math.max(b.width, b.height));
     const offscreen = sx < 0 || sy < 60 || sx + sw > W || sy + sh > H;
     if (s !== view.s || offscreen) {
-      view.s = s;
-      view.x = W / 2 - (b.x + b.width / 2) * s;
-      view.y = (H + 60) / 2 - (b.y + b.height / 2) * s;
-      apply();
+      animateTo({ s, x: W / 2 - (b.x + b.width / 2) * s, y: (H + 60) / 2 - (b.y + b.height / 2) * s });
     }
   }
 
@@ -499,7 +527,7 @@ const firebaseConfig = {
             <h2 class="rname">${esc(r.n)}</h2>
             ${pill}
           </div>
-          <button class="close" id="back">전체 보기</button>
+          <button class="close" id="back">닫기</button>
         </div>
       </div>
       ${v?.status === 'visited' && v.memo ? `<section><h3>우리의 메모</h3><p class="memo-view"></p>${who ? `<div class="meta">${esc(who)} 님이 기록</div>` : ''}</section>` : ''}
@@ -522,14 +550,14 @@ const firebaseConfig = {
             <div class="field"><span class="lbl">칠할 색</span><div class="swatches">${COLORS.map(([k, n]) => `<button class="sw" data-col="${k}" aria-label="${n}" aria-pressed="${draft.color === k}" style="background:var(--c-${k})"></button>`).join('')}</div></div>
             <div class="field"><label for="f-memo">메모</label><textarea id="f-memo" placeholder="뭐 먹었는지, 어디가 좋았는지 적어두면 나중에 더 좋아요"></textarea></div>
           </div>
-          <button class="save" id="save" ${editable ? '' : 'disabled'}>${draft.status === 'visited' ? '색칠하기' : draft.status === 'wish' ? '가고 싶은 곳에 담기' : '기록 지우기'}</button>
+          <button class="save" id="save" ${editable && !(draft.status === 'none' && !v) ? '' : 'disabled'}>${draft.status === 'visited' ? (v?.status === 'visited' ? '기록 고치기' : '색칠하기') : draft.status === 'wish' ? '가고 싶은 곳에 담기' : (v ? '기록 지우기' : '가고 싶어 / 다녀왔어를 골라주세요')}</button>
           ${v?.updatedAt && who && !(v.status === 'visited' && v.memo) ? `<div class="meta">${esc(who)} 님이 마지막으로 기록</div>` : ''}
         </div>
       </section>`;
     const memoView = $('pbody').querySelector('.memo-view');
     if (memoView) memoView.textContent = v.memo;
     $('f-memo') && ($('f-memo').value = draft.memo);
-    $('back').onclick = () => { selected = null; draft = null; paint(); render(); };
+    $('back').onclick = goBack;
     $('pbody').querySelectorAll('[data-st]').forEach(b => b.onclick = () => { draft.status = b.dataset.st; renderRegion(); });
     $('pbody').querySelectorAll('[data-col]').forEach(b => b.onclick = () => {
       draft.color = b.dataset.col;
@@ -545,13 +573,56 @@ const firebaseConfig = {
     if (selected) renderRegion(); else renderOverview();
   }
 
-  function select(c, zoom) {
-    selected = c; draft = null;
-    $('panel').classList.add('open');
-    paint(); render();
-    $('pbody').scrollTop = 0;
-    if (zoom) requestAnimationFrame(() => focusRegion(c));
+  // ---------- navigation (browser back closes things) ----------
+  const drafts = {};
+  function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
+  function setSheet(open) { $('panel').classList.toggle('open', open); }
+  function swapIn() {
+    const pb = $('pbody');
+    pb.classList.remove('swap'); void pb.offsetWidth; pb.classList.add('swap');
   }
+  function stashDraft() {
+    if (selected && draft && draft.memo.trim() && draft.memo !== (visits[selected]?.memo || '')) drafts[selected] = draft;
+  }
+  function showRegion(c, zoom) {
+    const changed = selected !== c;
+    stashDraft();
+    selected = c; draft = drafts[c] || null; delete drafts[c];
+    setSheet(true);
+    paint(); render();
+    if (changed) { swapIn(); $('pbody').scrollTop = 0; }
+    requestAnimationFrame(() => focusRegion(c, zoom));
+  }
+  function showOverview(sheetOpen) {
+    const changed = !!selected;
+    stashDraft();
+    selected = null; draft = null;
+    setSheet(sheetOpen);
+    paint(); render();
+    if (changed) { swapIn(); $('pbody').scrollTop = 0; }
+  }
+  function openRegion(c, zoom) {
+    const s = history.state || {};
+    if (s.c === c) { showRegion(c, zoom); return; }
+    if (s.c) history.replaceState({ c }, ''); else history.pushState({ c }, '');
+    showRegion(c, zoom);
+  }
+  function select(c, zoom) { openRegion(c, zoom); }
+  function openSheet() {
+    if (!isMobile() || $('panel').classList.contains('open')) return;
+    history.pushState({ sheet: 1 }, '');
+    setSheet(true);
+  }
+  function goBack() {
+    const s = history.state || {};
+    if (s.c || s.sheet) history.back();
+    else showOverview(false);
+  }
+  window.addEventListener('popstate', (e) => {
+    const s = e.state || {};
+    if (s.c && byCode[s.c]) showRegion(s.c, true);
+    else showOverview(!!s.sheet);
+  });
 
   function toast(msg) {
     const t = $('toast'); t.textContent = msg; t.hidden = false;
@@ -579,6 +650,7 @@ const firebaseConfig = {
         if (rec) await fb.set(r0, rec); else await fb.remove(r0);
       }
       if (rec) visits[c] = rec; else delete visits[c];
+      delete drafts[c];
       if (mode === 'local') saveLocal();
       draft = null; paint(); render();
       toast(rec ? (rec.status === 'visited' ? `${r.n}을(를) 칠했어요` : `${r.n}을(를) 가고 싶은 곳에 담았어요`) : `${r.n} 기록을 지웠어요`);
@@ -616,11 +688,53 @@ const firebaseConfig = {
   q.addEventListener('blur', () => setTimeout(() => sug.hidden = true, 150));
 
   // ---------- sheet ----------
-  $('handle').onclick = () => $('panel').classList.toggle('open');
-  $('peek').onclick = () => $('panel').classList.add('open');
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && selected && document.activeElement?.tagName !== 'TEXTAREA') { selected = null; draft = null; paint(); render(); } });
+  let sheetDrag = null, suppressClick = false;
+  const panel = $('panel');
+  function sheetTap() { if (panel.classList.contains('open')) goBack(); else openSheet(); }
+  $('handle').onclick = () => { if (suppressClick) { suppressClick = false; return; } sheetTap(); };
+  $('peek').onclick = () => { if (suppressClick) { suppressClick = false; return; } openSheet(); };
+  for (const el of [$('handle'), $('peek')]) {
+    el.addEventListener('pointerdown', (e) => {
+      if (!isMobile()) return;
+      const travel = panel.offsetHeight - 78;
+      sheetDrag = { y: e.clientY, t: performance.now(), open: panel.classList.contains('open'), travel, off: 0, moved: 0 };
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!sheetDrag) return;
+      const dy = e.clientY - sheetDrag.y;
+      sheetDrag.moved = Math.max(sheetDrag.moved, Math.abs(dy));
+      if (sheetDrag.moved < 6) return;
+      panel.classList.add('dragging');
+      const base = sheetDrag.open ? 0 : sheetDrag.travel;
+      sheetDrag.off = Math.max(0, Math.min(sheetDrag.travel, base + dy));
+      panel.style.transform = `translateY(${sheetDrag.off}px)`;
+    });
+    const end = (e) => {
+      if (!sheetDrag) return;
+      const d = sheetDrag; sheetDrag = null;
+      panel.classList.remove('dragging');
+      panel.style.transform = '';
+      if (d.moved < 6) return;
+      suppressClick = true; setTimeout(() => suppressClick = false, 0);
+      const v = (e.clientY - d.y) / Math.max(1, performance.now() - d.t);
+      const wantOpen = Math.abs(v) > 0.5 ? v < 0 : d.off < d.travel * 0.5;
+      if (wantOpen && !d.open) openSheet();
+      else if (!wantOpen && d.open) goBack();
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || document.activeElement?.tagName === 'TEXTAREA') return;
+    if (selected || (isMobile() && panel.classList.contains('open'))) goBack();
+  });
 
-  window.addEventListener('resize', () => fit());
+  let lastW = stage.clientWidth;
+  window.addEventListener('resize', () => {
+    if (Math.abs(stage.clientWidth - lastW) < 2) return;
+    lastW = stage.clientWidth; fit();
+  });
   fit(); paint(); render();
 
   // ---------- connect ----------
