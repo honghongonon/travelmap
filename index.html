@@ -403,10 +403,27 @@ const firebaseConfig = {
       l.style.strokeWidth = (3 / view.s) + 'px';
     }
   }
+  // Keep Korea from drifting away: most of the map stays on screen, and once zoomed
+  // in past the screen its edge can't come in more than a quarter of the screen.
+  // `from` (a view already out of bounds, e.g. after focusing an island) is allowed
+  // to stay where it is, so dragging never makes the map jump.
+  function clampView(v, from) {
+    const W = stage.clientWidth, top = 60, H = stage.clientHeight - bottomInset();
+    const mw = MAP.w * v.s, mh = MAP.h * v.s;
+    const kx = Math.min(mw, W) * 0.75, ky = Math.min(mh, H - top) * 0.75;
+    let x0 = kx - mw, x1 = W - kx, y0 = top + ky - mh, y1 = H - ky;
+    if (from && from.s === v.s) {
+      x0 = Math.min(x0, from.x); x1 = Math.max(x1, from.x);
+      y0 = Math.min(y0, from.y); y1 = Math.max(y1, from.y);
+    }
+    v.x = Math.min(x1, Math.max(x0, v.x));
+    v.y = Math.min(y1, Math.max(y0, v.y));
+    return v;
+  }
   function zoomAt(factor, cx, cy, animate) {
     const ns = Math.max(fitS * 0.8, Math.min(fitS * 14, view.s * factor));
     const k = ns / view.s;
-    const target = { s: ns, x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k };
+    const target = clampView({ s: ns, x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k }, view);
     if (animate) animateTo(target, 300); else { stopAnim(); view = target; apply(); }
   }
   function center() { return [stage.clientWidth / 2, (stage.clientHeight - bottomInset()) / 2]; }
@@ -449,7 +466,7 @@ const firebaseConfig = {
       moved = Math.max(moved, Math.hypot(dx, dy));
       if (moved > 4) {
         svg.classList.add('dragging');
-        view.x = dragStart.vx + dx; view.y = dragStart.vy + dy; apply();
+        view.x = dragStart.vx + dx; view.y = dragStart.vy + dy; clampView(view, { s: view.s, x: dragStart.vx, y: dragStart.vy }); apply();
       }
     }
   });
