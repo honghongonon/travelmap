@@ -107,7 +107,7 @@ svg.map.dragging { cursor: grabbing; }
 .panel { background: var(--panel); border-left: 1px solid var(--panel-line); display: flex; flex-direction: column; min-height: 0; z-index: 4; }
 .handle { display: none; }
 .peek { display: none; }
-.pbody { flex: 1; min-height: 0; overflow: auto; padding: 20px 20px 28px; display: grid; gap: 22px; align-content: start; }
+.pbody { flex: 1; min-height: 0; overflow: auto; overscroll-behavior-y: contain; padding: 20px 20px 28px; display: grid; gap: 22px; align-content: start; }
 .eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); }
 .rname { margin: 2px 0 0; font-family: var(--font-hand); font-weight: 700; font-size: 40px; line-height: 1.05; text-wrap: balance; }
 .headrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
@@ -1426,6 +1426,39 @@ const firebaseConfig = {
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
   }
+  // Pulling down on the sheet's content closes it too, once the content is scrolled to the top.
+  const pbody = $('pbody');
+  let bodyPull = null;
+  pbody.addEventListener('touchstart', (e) => {
+    bodyPull = null;
+    if (!isMobile() || !panel.classList.contains('open') || e.touches.length !== 1 || pbody.scrollTop > 0) return;
+    if (e.target.closest('textarea, input, .ph-stage.editing')) return;
+    const t = e.touches[0];
+    bodyPull = { x: t.clientX, y: t.clientY, t: 0, travel: panel.offsetHeight - 78, off: 0, active: false };
+  }, { passive: true });
+  pbody.addEventListener('touchmove', (e) => {
+    const d = bodyPull;
+    if (!d) return;
+    const t = e.touches[0], dx = t.clientX - d.x, dy = t.clientY - d.y;
+    if (!d.active) {
+      if (dy <= 0 || Math.abs(dx) > dy || pbody.scrollTop > 0) { bodyPull = null; return; }
+      d.active = true; d.t = performance.now();
+      panel.classList.add('dragging');
+    }
+    if (e.cancelable) e.preventDefault();
+    d.off = Math.max(0, Math.min(d.travel, dy));
+    panel.style.transform = `translateY(${d.off}px)`;
+  }, { passive: false });
+  const pullEnd = () => {
+    const d = bodyPull; bodyPull = null;
+    if (!d || !d.active) return;
+    panel.classList.remove('dragging');
+    panel.style.transform = '';
+    const v = d.off / Math.max(1, performance.now() - d.t);
+    if (d.off > d.travel * 0.3 || (d.off > 40 && v > 0.5)) goBack();
+  };
+  pbody.addEventListener('touchend', pullEnd);
+  pbody.addEventListener('touchcancel', pullEnd);
   document.addEventListener('keydown', (e) => {
     if (cfDone) { if (e.key === 'Escape') cfDone(false); return; }
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '');
