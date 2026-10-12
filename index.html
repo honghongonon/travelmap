@@ -67,6 +67,11 @@ button { cursor: pointer; }
 .dday { margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--panel-line); background: var(--panel); border-radius: 999px; padding: 3px 11px 3px 9px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); white-space: nowrap; }
 .dday .heart { color: var(--accent); font-size: 11px; }
 .dday b { font-family: var(--font-hand); font-size: 19px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dd-roll { display: grid; overflow: hidden; }
+.dd-roll > span { grid-area: 1 / 1; display: inline-flex; align-items: baseline; gap: 4px; transform: translateY(110%); opacity: 0; transition: transform .45s cubic-bezier(.2,.7,.2,1), opacity .3s; }
+.dd-roll > span.on { transform: none; opacity: 1; }
+.dd-roll > span.out { transform: translateY(-110%); opacity: 0; }
+.dday .dl { font-size: .92em; }
 .dday.party { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
 .search { pointer-events: auto; position: relative; width: min(240px, 46vw); }
 .search input { width: 100%; box-sizing: border-box; border: 1px solid var(--panel-line); background: var(--panel); border-radius: 999px; padding: 8px 14px; box-shadow: var(--shadow); }
@@ -259,7 +264,7 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
       <div class="brand">
         <h1>지홍<span class="heart">♥</span>온유 도장깨기</h1>
         <p>지홍이랑 온유가 같이 다녀온 시·군을 하나씩 깨요</p>
-        <button class="dday" id="dday" type="button" hidden></button>
+        <div class="dday" id="dday" hidden></div>
       </div>
       <div class="search">
         <input id="q" type="search" placeholder="지역 찾기 (예: 담양)" autocomplete="off" aria-label="지역 찾기">
@@ -1065,40 +1070,55 @@ const firebaseConfig = {
   // ---------- navigation (browser back closes things) ----------
   const drafts = {};
   // ---------- days together (first day counts as day 1) ----------
+  // The badge rolls through: days together → next 100-day mark → next anniversary.
   const MET = [2024, 9, 13];
   function dayNum(d) { return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
   function together() {
-    const now = new Date();
-    const met = new Date(MET[0], MET[1] - 1, MET[2]);
-    const days = dayNum(now) - dayNum(met) + 1;
-    // next milestone: the next 100-day mark or the next anniversary, whichever comes first
+    const now = new Date(), today = dayNum(now);
+    const days = today - dayNum(new Date(MET[0], MET[1] - 1, MET[2])) + 1;
     const next100 = Math.ceil((days + 1) / 100) * 100;
     let y = now.getFullYear() - MET[0];
-    if (dayNum(new Date(MET[0] + y, MET[1] - 1, MET[2])) <= dayNum(now)) y++;
-    const anniv = dayNum(new Date(MET[0] + y, MET[1] - 1, MET[2])) - dayNum(now);
-    const next = anniv < next100 - days ? { name: `${y}주년`, left: anniv } : { name: `${next100}일`, left: next100 - days };
-    let party = '';
-    if (days > 1 && days % 100 === 0) party = `${days}일`;
+    if (dayNum(new Date(MET[0] + y, MET[1] - 1, MET[2])) <= today) y++;
     const yy = now.getFullYear() - MET[0];
-    if (yy > 0 && now.getMonth() === MET[1] - 1 && now.getDate() === MET[2]) party = `${yy}주년`;
-    return { days, next, party };
+    const party = yy > 0 && now.getMonth() === MET[1] - 1 && now.getDate() === MET[2] ? `${yy}주년`
+      : days > 1 && days % 100 === 0 ? `${days}일` : '';
+    return {
+      days, party,
+      marks: [
+        { name: `${next100}일`, left: next100 - days },
+        { name: `${y}주년`, left: dayNum(new Date(MET[0] + y, MET[1] - 1, MET[2])) - today },
+      ].sort((a, b) => a.left - b.left),
+    };
   }
+  let ddKey = '', ddIdx = 0;
   function renderDday() {
     const el = $('dday'), t = together();
     if (t.days < 1) { el.hidden = true; return; }
+    const key = t.days + t.party;
+    if (key === ddKey) return;
+    ddKey = key; ddIdx = 0;
     el.hidden = false;
     el.classList.toggle('party', !!t.party);
-    el.innerHTML = t.party
-      ? `<span class="heart">♥</span>오늘 우리 <b>${t.party}</b> 🎉`
-      : `<span class="heart">♥</span>만난 지 <b>${t.days}</b>일째`;
-    el.setAttribute('aria-label', `만난 지 ${t.days}일째`);
+    const first = t.party ? `오늘 우리 <b>${t.party}</b> 🎉` : `만난 지 <b>${t.days}</b>일째`;
+    el.innerHTML = `<span class="heart" aria-hidden="true">♥</span><span class="dd-roll">
+      <span class="on">${first}</span>
+      ${t.marks.map(m => `<span><span class="dl">${m.name}까지</span> <b>D-${m.left}</b></span>`).join('')}
+    </span>`;
+    el.setAttribute('aria-label', [`만난 지 ${t.days}일째`, ...t.marks.map(m => `${m.name}까지 ${m.left}일`)].join(', '));
   }
-  $('dday').onclick = () => {
-    const t = together();
-    toast(`${MET[0]}.${String(MET[1]).padStart(2, '0')}.${String(MET[2]).padStart(2, '0')}에 만났어요 · ${t.next.name}까지 ${t.next.left}일`);
-  };
+  function rollDday() {
+    const items = $('dday').querySelectorAll('.dd-roll > span');
+    if (items.length < 2 || document.hidden) return;
+    const cur = items[ddIdx];
+    ddIdx = (ddIdx + 1) % items.length;
+    const nxt = items[ddIdx];
+    cur.classList.remove('on'); cur.classList.add('out');
+    nxt.classList.remove('out'); nxt.classList.add('on');
+    setTimeout(() => cur.classList.remove('out'), 500);
+  }
   renderDday();
   setInterval(renderDday, 60 * 1000);
+  setInterval(rollDday, 3200);
 
   function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
   function setSheet(open) { $('panel').classList.toggle('open', open); }
