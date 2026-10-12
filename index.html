@@ -149,9 +149,9 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 .prov li.done .mini i { background: var(--accent); }
 .prov em { font-style: normal; color: var(--muted); font-variant-numeric: tabular-nums; }
 .recent { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.recent button { width: 100%; display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; text-align: left; border: 1px solid var(--panel-line); background: none; border-radius: 12px; padding: 10px 12px; }
+.recent button { width: 100%; display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; text-align: left; border: 1px solid var(--panel-line); background: none; border-radius: 12px; padding: 10px 12px; }
 .recent button:hover { background: var(--soft); }
-.recent i { width: 14px; height: 14px; border-radius: 50%; }
+.recent i { width: 14px; height: 14px; border-radius: 50%; justify-self: center; }
 .recent small { color: var(--muted); font-variant-numeric: tabular-nums; }
 .empty { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: 999px; font-size: 13px; z-index: 20; box-shadow: var(--shadow); }
@@ -197,7 +197,7 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 .btn2.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
 .btn2.danger { color: var(--accent); }
 .btn2:disabled { opacity: .5; cursor: default; }
-.ph-drop { display: grid; place-items: center; gap: 4px; text-align: center; padding: 22px 14px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--soft); cursor: pointer; color: var(--ink); }
+.ph-drop { width: 100%; box-sizing: border-box; display: grid; place-items: center; gap: 4px; text-align: center; padding: 22px 14px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--soft); cursor: pointer; color: var(--ink); }
 .ph-drop:hover { border-color: var(--accent); }
 .ph-drop b { font-weight: 600; }
 .ph-drop small { color: var(--muted); }
@@ -218,6 +218,32 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 .pbody.swap > * { animation: swapIn .26s cubic-bezier(.2,.7,.2,1) both; }
 .pbody.swap > *:nth-child(2) { animation-delay: .03s; } .pbody.swap > *:nth-child(3) { animation-delay: .06s; } .pbody.swap > *:nth-child(n+4) { animation-delay: .09s; }
 .toast { animation: swapIn .2s ease-out; }
+.trip-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.trip-head h3 { margin: 0; }
+.trip-card { border: 1px solid var(--panel-line); border-radius: 16px; padding: 12px; display: grid; gap: 10px; background: var(--panel); touch-action: pan-y; transition: transform .2s; }
+.trip-card.editing { background: var(--soft); }
+.trip-card.in-next { animation: tripNext .28s cubic-bezier(.2,.7,.2,1); }
+.trip-card.in-prev { animation: tripPrev .28s cubic-bezier(.2,.7,.2,1); }
+.trip-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.trip-top b { font-family: var(--font-hand); font-size: 22px; font-weight: 700; }
+.trip-top span { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.trip-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; }
+.trip-nav .dots { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.trip-nav .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--panel-line); }
+.trip-nav .dots i.on { background: var(--accent); }
+.ph-stage.viewable svg { touch-action: pan-y; }
+.recent img.th { width: 28px; height: 28px; border-radius: 8px; object-fit: cover; display: block; }
+.recent .nth { font-style: normal; font-size: 11.5px; color: var(--accent); margin-left: 4px; }
+.tl-year { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--muted); margin: 14px 2px 6px; }
+.tl-year:first-of-type { margin-top: 0; }
+.more { width: 100%; margin-top: 8px; }
+.confirm { position: fixed; inset: 0; z-index: 40; background: rgba(10, 13, 20, .45); display: grid; place-items: center; padding: 16px; animation: lbIn .18s ease-out; }
+.cf-card { background: var(--panel); color: var(--ink); border-radius: 18px; padding: 20px; width: min(340px, 100%); box-sizing: border-box; box-shadow: var(--shadow); display: grid; gap: 8px; animation: swapIn .22s cubic-bezier(.2,.7,.2,1); }
+.cf-card b { font-size: 16px; }
+.cf-card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+.cf-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+@keyframes tripNext { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes tripPrev { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 
@@ -261,6 +287,9 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 </div>
 <div class="toast" id="toast" hidden></div>
 <input type="file" id="photoFile" accept="image/*" hidden>
+<div class="confirm" id="confirm" hidden role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfBody">
+  <div class="cf-card"><b id="cfTitle"></b><p id="cfBody"></p><div class="cf-row"><button class="btn2" id="cfNo">아니요</button><button class="btn2 primary" id="cfYes">지울래요</button></div></div>
+</div>
 <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="사진 크게 보기">
   <div class="lb-top"><div><b id="lbTitle"></b><small id="lbSub"></small></div><button class="lb-close" id="lbClose">닫기</button></div>
   <div class="lb-img" id="lbImgWrap"><img id="lbImg" alt=""></div>
@@ -313,8 +342,13 @@ const firebaseConfig = {
 
   // ---------- state ----------
   let visits = {};          // code -> {status, date, color, memo, updatedAt}
-  let photos = {};          // code -> {img, w, h, ox, oy, s}
-  let photoEdit = null;     // {c, p, isNew, saving}
+  let photos = {};          // code -> {img, w, h, ox, oy, s}  (photo of the first trip, 't0')
+  let trips = {};           // code -> {tripId: {date, memo, updatedAt}}  (only once a region has 2+ trips)
+  let tripPhotos = {};      // code -> {tripId: photo}  (photos of trips other than 't0')
+  let tripCur = {};         // code -> tripId shown on the card
+  let tripForm = null;      // {c, tid (null = new trip), date, memo, saving}
+  let tlOpen = false;       // overview timeline expanded
+  let photoEdit = null;     // {c, tid, p, isNew, saving}
   let mode = 'connecting';  // shared | local | connecting
   let db = null, user = null, myId = null, canWrite = true;
   let selected = null;
@@ -509,7 +543,39 @@ const firebaseConfig = {
   // ---------- photos on the map ----------
   const defs = svg.querySelector('defs'), photoLayer = $('photoLayer');
   const photoEls = {};
-  function photoFor(c) { return photoEdit && photoEdit.c === c ? photoEdit.p : photos[c]; }
+  // A region's first trip ('t0') lives on the visit itself (visits/c date+memo, photo in photos/c)
+  // so old records keep working. Once a second trip is added, every trip is kept under trips/c/<id>;
+  // photos of trips other than 't0' go to tripPhotos/c/<id>.
+  function tripsOf(c) {
+    const v = visits[c];
+    if (!v || v.status !== 'visited') return [];
+    const t = trips[c];
+    let list = t ? Object.entries(t).filter(([, x]) => x).map(([id, x]) => ({ id, date: x.date || '', memo: x.memo || '' })) : [];
+    if (!list.length) list = [{ id: 't0', date: v.date || '', memo: v.memo || '' }];
+    return list.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  }
+  function tripsStored(c) { return !!(trips[c] && Object.keys(trips[c]).length); }
+  function photoPath(c, id) { return id === 't0' ? 'photos/' + c : `tripPhotos/${c}/${id}`; }
+  function tripPhoto(c, id) { return (id === 't0' ? photos[c] : tripPhotos[c] && tripPhotos[c][id]) || null; }
+  function curTrip(c) {
+    const list = tripsOf(c);
+    const i = list.findIndex(t => t.id === tripCur[c]);
+    return i >= 0 ? i : list.length - 1;
+  }
+  // photo shown on the map: the card being viewed, else the latest trip with a photo
+  function coverOf(c) {
+    if (photoEdit && photoEdit.c === c) return photoEdit.p;
+    const list = tripsOf(c);
+    if (selected === c && list.length) { const p = tripPhoto(c, list[curTrip(c)].id); if (p) return p; }
+    for (let i = list.length - 1; i >= 0; i--) { const p = tripPhoto(c, list[i].id); if (p) return p; }
+    return null;
+  }
+  // photo in the card editor: the one being edited, else the current card's
+  function edPhoto(c) {
+    if (photoEdit && photoEdit.c === c) return photoEdit.p;
+    const t = tripsOf(c)[curTrip(c)];
+    return t ? tripPhoto(c, t.id) : null;
+  }
   function photoBox(c, p) {
     const b = bbox[c];
     const k0 = Math.max(b.width / p.w, b.height / p.h);
@@ -529,7 +595,7 @@ const firebaseConfig = {
   }
   function setBox(img, bx) { img.setAttribute('x', bx.x); img.setAttribute('y', bx.y); img.setAttribute('width', bx.w); img.setAttribute('height', bx.h); }
   function paintPhoto(c) {
-    const p = photoFor(c);
+    const p = coverOf(c);
     let el = photoEls[c];
     if (!p) {
       if (el) { el.clip.remove(); el.g.remove(); delete photoEls[c]; }
@@ -555,7 +621,7 @@ const firebaseConfig = {
     labelEls[c].classList.add('on-photo');
   }
   function paintPhotos() {
-    const codes = new Set([...Object.keys(photos), ...Object.keys(photoEls)]);
+    const codes = new Set([...Object.keys(photos), ...Object.keys(tripPhotos), ...Object.keys(photoEls)]);
     if (photoEdit) codes.add(photoEdit.c);
     codes.forEach(c => { if (byCode[c]) paintPhoto(c); });
   }
@@ -588,16 +654,41 @@ const firebaseConfig = {
     return '';
   }
 
-  async function renderOverview() {
+  function allTrips() {
+    const out = [];
+    for (const c in visits) {
+      if (!byCode[c] || visits[c].status !== 'visited') continue;
+      tripsOf(c).forEach((t, i) => out.push({ c, id: t.id, date: t.date, n: i + 1, color: visits[c].color }));
+    }
+    return out.sort((a, b) => b.date.localeCompare(a.date) || b.n - a.n);
+  }
+  function tripItem(x) {
+    const r = byCode[x.c], p = tripPhoto(x.c, x.id);
+    const name = r.g === r.n ? r.n : r.g + ' ' + r.n;
+    return `<li><button data-go="${x.c}" data-trip="${esc(x.id)}">${p ? `<img class="th" src="${esc(p.img)}" alt="">` : `<i style="background:var(--c-${esc(x.color || 'peach')})"></i>`}<span>${esc(name)}${x.n > 1 ? `<em class="nth">${x.n}번째</em>` : ''}</span><small>${esc(fmtDate(x.date))}</small></button></li>`;
+  }
+  function renderOverview() {
     const c = counts();
     const pct = Math.round(c.visited / total * 100);
     const groups = {};
     for (const g of GROUP_ORDER) groups[g] = { t: 0, v: 0 };
     for (const r of regions) { groups[r.g].t++; if (visits[r.c]?.status === 'visited') groups[r.g].v++; }
-    const recent = Object.entries(visits)
-      .filter(([k, v]) => byCode[k] && v.status === 'visited')
-      .sort((a, b) => (b[1].date || '').localeCompare(a[1].date || '') || (b[1].updatedAt || '').localeCompare(a[1].updatedAt || ''))
-      .slice(0, 8);
+    const all = allTrips();
+    const RECENT = 6;
+    let tl;
+    if (!all.length) tl = `<p class="empty">아직 칠한 곳이 없어요. 지도에서 다녀온 시·군을 누르고 <b>다녀왔어</b>를 골라 첫 칸을 칠해보세요.</p>`;
+    else if (!tlOpen) tl = `<ul class="recent">${all.slice(0, RECENT).map(tripItem).join('')}</ul>`;
+    else {
+      const years = [];
+      for (const x of all) {
+        const y = x.date.slice(0, 4) || '날짜 없음';
+        if (!years.length || years[years.length - 1].y !== y) years.push({ y, items: [] });
+        years[years.length - 1].items.push(x);
+      }
+      tl = years.map(g => `<div class="tl-year"><span>${esc(g.y)}${/^\d+$/.test(g.y) ? '년' : ''}</span><span>${g.items.length}번</span></div><ul class="recent">${g.items.map(tripItem).join('')}</ul>`).join('');
+    }
+    const more = all.length > RECENT ? `<button class="btn2 more" id="tlMore">${tlOpen ? '접기' : `전체 보기 · 여행 ${all.length}번`}</button>` : '';
+    const nPhotos = Object.keys(photos).length + Object.values(tripPhotos).reduce((n, o) => n + Object.keys(o || {}).length, 0);
     const wishes = Object.entries(visits).filter(([k, v]) => byCode[k] && v.status === 'wish').slice(0, 12);
     $('pbody').innerHTML = `
       ${modeNote()}
@@ -605,35 +696,41 @@ const firebaseConfig = {
         <div class="eyebrow">우리가 칠한 곳</div>
         <div class="big"><b>${c.visited}</b><span>/ ${total} 시·군</span></div>
         <div class="bar"><i style="width:${pct}%"></i></div>
-        <div class="sub">${pct}% 채웠어요${c.wish ? ` · 가고 싶은 곳 ${c.wish}곳` : ''}${Object.keys(photos).length ? ` · 사진 ${Object.keys(photos).length}장` : ''}</div>
+        <div class="sub">${pct}% 채웠어요${c.wish ? ` · 가고 싶은 곳 ${c.wish}곳` : ''}${nPhotos ? ` · 사진 ${nPhotos}장` : ''}</div>
       </section>
       <section>
-        <h3>최근 다녀온 곳</h3>
-        ${recent.length ? `<ul class="recent">${recent.map(([k, v]) => `<li><button data-go="${k}"><i style="background:var(--c-${esc(v.color || 'peach')})"></i><span>${esc(byCode[k].g === byCode[k].n ? byCode[k].n : byCode[k].g + ' ' + byCode[k].n)}</span><small>${esc(fmtDate(v.date))}</small></button></li>`).join('')}</ul>`
-          : `<p class="empty">아직 칠한 곳이 없어요. 지도에서 다녀온 시·군을 누르고 <b>다녀왔어</b>를 골라 첫 칸을 칠해보세요.</p>`}
+        <h3>${tlOpen ? '우리 여행 타임라인' : '최근 다녀온 곳'}</h3>
+        ${tl}${more}
       </section>
       ${wishes.length ? `<section><h3>가고 싶은 곳</h3><ul class="recent">${wishes.map(([k]) => `<li><button data-go="${k}"><i style="background:repeating-linear-gradient(45deg,var(--land) 0 2px,var(--accent) 2px 3.5px)"></i><span>${esc(byCode[k].g === byCode[k].n ? byCode[k].n : byCode[k].g + ' ' + byCode[k].n)}</span><small></small></button></li>`).join('')}</ul></section>` : ''}
       <section>
         <h3>지역별 진행</h3>
         <ul class="prov">${GROUP_ORDER.map(g => { const x = groups[g]; return `<li class="${x.v === x.t ? 'done' : ''}"><span>${g}</span><span class="mini"><i style="width:${Math.round(x.v / x.t * 100)}%"></i></span><em>${x.v}/${x.t}</em></li>`; }).join('')}</ul>
       </section>`;
-    $('pbody').querySelectorAll('[data-go]').forEach(b => b.onclick = () => select(b.dataset.go, true));
+    $('pbody').querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
+      if (b.dataset.trip) tripCur[b.dataset.go] = b.dataset.trip;
+      select(b.dataset.go, true);
+    });
+    if ($('tlMore')) $('tlMore').onclick = () => { tlOpen = !tlOpen; renderOverview(); };
   }
 
-  async function renderRegion() {
+  function canEdit() { return mode !== 'connecting' && (mode === 'local' || canWrite); }
+  function renderRegion() {
     const r = byCode[selected];
-    const v = visits[r.c];
-    if (!draft) draft = { status: v?.status || 'none', date: v?.date || today(), color: v?.color || 'peach', memo: v?.memo || '' };
+    const c = r.c;
+    const v = visits[c];
     const st = v?.status || 'none';
-    const pill = st === 'visited' ? `<span class="pill visited" style="background:var(--c-${esc(v.color || 'peach')})">다녀왔어 · ${esc(fmtDate(v.date))}</span>`
+    if (!draft) draft = { status: st, date: today(), color: v?.color || 'peach', memo: '' };
+    const list = tripsOf(c);
+    const pill = st === 'visited' ? `<span class="pill visited" style="background:var(--c-${esc(v.color || 'peach')})">다녀왔어 · ${list.length > 1 ? `${list.length}번` : esc(fmtDate(list[0].date))}</span>`
       : st === 'wish' ? `<span class="pill wish">가고 싶어</span>` : `<span class="pill none">아직 안 가봤어</span>`;
-    let who = '';
-    if (v?.by && user && user.profiles) {
-      try { const ps = await user.profiles([v.by]); const n = ps[v.by]?.name; if (n) who = n; } catch (e) {}
-    }
-    if (selected !== r.c) return;
     const tag = tagName(r);
-    const editable = mode !== 'connecting' && (mode === 'local' || canWrite);
+    const editable = canEdit();
+    const firstVisit = draft.status === 'visited' && st !== 'visited';
+    const saveLabel = draft.status === 'visited' ? (st === 'visited' ? '색 바꾸기' : '색칠하기')
+      : draft.status === 'wish' ? (st === 'wish' ? '가고 싶은 곳에 담겨 있어요' : '가고 싶은 곳에 담기')
+      : (st === 'none' ? '아직 안 가봤어요' : '기록 지우기');
+    const canSave = () => editable && (draft.status !== st || (st === 'visited' && draft.color !== (v.color || 'peach')));
     $('pbody').innerHTML = `
       <div>
         <div class="headrow">
@@ -645,8 +742,7 @@ const firebaseConfig = {
           <button class="close" id="back">닫기</button>
         </div>
       </div>
-      ${v?.status === 'visited' ? `<section id="photoSec"></section>` : ''}
-      ${v?.status === 'visited' && v.memo ? `<section><h3>우리의 메모</h3><p class="memo-view"></p>${who ? `<div class="meta">${esc(who)} 님이 기록</div>` : ''}</section>` : ''}
+      ${st === 'visited' ? `<section id="tripSec"></section>` : ''}
       <section>
         <h3>가볼 만한 곳</h3>
         <ul class="spots">${r.spots.map(([n, d]) => `<li class="spot"><b>${esc(n)}</b><p>${esc(d)}</p><a href="https://map.naver.com/p/search/${encodeURIComponent(r.n + ' ' + n.split('·')[0])}" target="_blank" rel="noopener">네이버 지도에서 찾기 ↗</a></li>`).join('')}</ul>
@@ -661,29 +757,111 @@ const firebaseConfig = {
             <button id="st-wish" data-st="wish" aria-pressed="${draft.status === 'wish'}">가고 싶어</button>
             <button id="st-visited" data-st="visited" aria-pressed="${draft.status === 'visited'}">다녀왔어</button>
           </div>
-          <div id="visitFields" ${draft.status === 'visited' ? '' : 'hidden'} class="form">
-            <div class="field"><label for="f-date">다녀온 날</label><input type="date" id="f-date" value="${esc(draft.date)}"></div>
-            <div class="field"><span class="lbl">칠할 색</span><div class="swatches">${COLORS.map(([k, n]) => `<button class="sw" data-col="${k}" aria-label="${n}" aria-pressed="${draft.color === k}" style="background:var(--c-${k})"></button>`).join('')}</div></div>
-            <div class="field"><label for="f-memo">메모</label><textarea id="f-memo" placeholder="뭐 먹었는지, 어디가 좋았는지 적어두면 나중에 더 좋아요"></textarea></div>
-            ${v?.status === 'visited' ? '' : '<p class="hint">칠하고 나면 대표 사진도 붙일 수 있어요.</p>'}
-          </div>
-          <button class="save" id="save" ${editable && !(draft.status === 'none' && !v) ? '' : 'disabled'}>${draft.status === 'visited' ? (v?.status === 'visited' ? '기록 고치기' : '색칠하기') : draft.status === 'wish' ? '가고 싶은 곳에 담기' : (v ? '기록 지우기' : '가고 싶어 / 다녀왔어를 골라주세요')}</button>
-          ${v?.updatedAt && who && !(v.status === 'visited' && v.memo) ? `<div class="meta">${esc(who)} 님이 마지막으로 기록</div>` : ''}
+          ${firstVisit ? `<div class="field"><label for="f-date">다녀온 날</label><input type="date" id="f-date" value="${esc(draft.date)}"></div>` : ''}
+          ${draft.status === 'visited' ? `<div class="field"><span class="lbl">칠할 색</span><div class="swatches">${COLORS.map(([k, n]) => `<button class="sw" data-col="${k}" aria-label="${n}" aria-pressed="${draft.color === k}" style="background:var(--c-${k})"></button>`).join('')}</div></div>` : ''}
+          ${firstVisit ? `<div class="field"><label for="f-memo">메모</label><textarea id="f-memo" placeholder="뭐 먹었는지, 어디가 좋았는지 적어두면 나중에 더 좋아요"></textarea></div>
+            <p class="hint">칠하고 나면 사진도 붙일 수 있고, 또 다녀오면 여행을 더 남길 수 있어요.</p>` : ''}
+          <button class="save" id="save" ${canSave() ? '' : 'disabled'}>${saveLabel}</button>
         </div>
       </section>`;
-    const memoView = $('pbody').querySelector('.memo-view');
-    if (memoView) memoView.textContent = v.memo;
     $('f-memo') && ($('f-memo').value = draft.memo);
     $('back').onclick = goBack;
     $('pbody').querySelectorAll('[data-st]').forEach(b => b.onclick = () => { draft.status = b.dataset.st; renderRegion(); });
     $('pbody').querySelectorAll('[data-col]').forEach(b => b.onclick = () => {
       draft.color = b.dataset.col;
       $('pbody').querySelectorAll('[data-col]').forEach(x => x.setAttribute('aria-pressed', x === b));
+      $('save').disabled = !canSave();
     });
     $('f-date') && ($('f-date').oninput = (e) => draft.date = e.target.value);
     $('f-memo') && ($('f-memo').oninput = (e) => draft.memo = e.target.value);
     $('save').onclick = saveDraft;
+    renderTripSec();
+  }
+
+  // ---------- trip cards ----------
+  let swipeAt = 0;
+  function renderTripSec(dir) {
+    const sec = $('tripSec');
+    if (!sec || !selected) return;
+    const c = selected;
+    const list = tripsOf(c);
+    if (!list.length) { sec.innerHTML = ''; return; }
+    const editable = canEdit();
+    const f = tripForm && tripForm.c === c ? tripForm : null;
+    const i = curTrip(c), t = list[i];
+    const locked = !!f || !!(photoEdit && photoEdit.c === c);
+    let card;
+    if (f) {
+      const fi = f.tid ? list.findIndex(x => x.id === f.tid) : list.length;
+      card = `<div class="trip-card editing">
+        <div class="trip-top"><b>${f.tid ? (list.length > 1 ? `${fi + 1}번째 여행 고치기` : '여행 고치기') : `${list.length + 1}번째 여행`}</b></div>
+        <div class="field"><label for="t-date">다녀온 날</label><input type="date" id="t-date" value="${esc(f.date)}"></div>
+        <div class="field"><label for="t-memo">메모</label><textarea id="t-memo" placeholder="이번엔 뭐 했는지 적어두면 나중에 더 좋아요"></textarea></div>
+        ${f.tid ? '' : '<p class="hint">저장하고 나면 이 여행 사진도 붙일 수 있어요.</p>'}
+        <div class="ph-row"><button class="btn2 primary" id="tSave" ${f.saving ? 'disabled' : ''}>${f.saving ? '저장 중…' : '저장'}</button><button class="btn2" id="tCancel">취소</button></div>
+      </div>`;
+    } else {
+      card = `<div class="trip-card${dir ? (dir > 0 ? ' in-next' : ' in-prev') : ''}" id="tripCard">
+        <div class="trip-top"><b>${list.length > 1 ? `${i + 1}번째 여행` : '우리 여행'}</b><span>${esc(fmtDate(t.date))}</span></div>
+        <div id="photoSec"></div>
+        ${t.memo ? `<p class="memo-view"></p>` : `<p class="hint">남긴 메모가 없어요.</p>`}
+        <div class="ph-row">
+          <button class="btn2" id="tEdit" ${editable && !locked ? '' : 'disabled'}>날짜·메모 고치기</button>
+          <button class="btn2 danger" id="tDel" ${editable && !locked ? '' : 'disabled'}>이 여행 지우기</button>
+        </div>
+      </div>`;
+    }
+    const nav = list.length > 1 && !f ? `<div class="trip-nav">
+        <button class="btn2" id="tPrev" ${i === 0 || locked ? 'disabled' : ''}>‹ 이전 여행</button>
+        <span class="dots" aria-label="${list.length}번 중 ${i + 1}번째">${list.length <= 8 ? list.map((x, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('') : `${i + 1} / ${list.length}`}</span>
+        <button class="btn2" id="tNext" ${i === list.length - 1 || locked ? 'disabled' : ''}>다음 여행 ›</button>
+      </div>` : '';
+    sec.innerHTML = `<div class="trip-head"><h3>${list.length > 1 ? `우리 여행 · ${list.length}번 다녀왔어요` : '우리 여행'}</h3>${f ? '' : `<button class="btn2" id="tAdd" ${editable && !locked ? '' : 'disabled'}>+ 또 다녀왔어</button>`}</div>${card}${nav}`;
+    if (f) {
+      $('t-memo').value = f.memo;
+      $('t-date').oninput = (e) => f.date = e.target.value;
+      $('t-memo').oninput = (e) => f.memo = e.target.value;
+      $('tSave').onclick = saveTrip;
+      $('tCancel').onclick = () => { tripForm = null; renderTripSec(); };
+      return;
+    }
+    const mv = sec.querySelector('.memo-view'); if (mv) mv.textContent = t.memo;
+    $('tAdd').onclick = () => { tripForm = { c, tid: null, date: today(), memo: '' }; photoEdit = null; paintPhotos(); renderTripSec(); };
+    $('tEdit').onclick = () => { tripForm = { c, tid: t.id, date: t.date || today(), memo: t.memo }; photoEdit = null; paintPhotos(); renderTripSec(); };
+    $('tDel').onclick = () => deleteTrip(c, t.id);
+    if ($('tPrev')) { $('tPrev').onclick = () => goTrip(c, -1); $('tNext').onclick = () => goTrip(c, 1); }
+    if (list.length > 1) bindSwipe($('tripCard'), c);
     renderPhotoSec();
+  }
+  function goTrip(c, d) {
+    const list = tripsOf(c), j = curTrip(c) + d;
+    if (j < 0 || j >= list.length || tripForm || (photoEdit && photoEdit.c === c)) return;
+    tripCur[c] = list[j].id;
+    renderTripSec(d);
+    paintPhotos();
+  }
+  function bindSwipe(el, c) {
+    let s = null;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button, input, textarea, a')) return;
+      s = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!s || e.pointerId !== s.id) return;
+      const dx = e.clientX - s.x;
+      if (Math.abs(dx) > Math.abs(e.clientY - s.y)) { el.style.transition = 'none'; el.style.transform = `translateX(${dx / 3}px)`; }
+    });
+    const end = (e) => {
+      if (!s || e.pointerId !== s.id) return;
+      const dx = e.clientX - s.x, dy = e.clientY - s.y; s = null;
+      el.style.transition = ''; el.style.transform = '';
+      if (e.type === 'pointerup' && Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        swipeAt = performance.now();
+        goTrip(c, dx < 0 ? 1 : -1);
+      }
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
   }
 
   // ---------- photo section & editor ----------
@@ -691,16 +869,17 @@ const firebaseConfig = {
     const sec = $('photoSec');
     if (!sec || !selected) return;
     const c = selected;
+    const t = tripsOf(c)[curTrip(c)];
+    if (!t) return;
     const editing = photoEdit && photoEdit.c === c;
-    const p = photoFor(c);
-    const editable = mode !== 'connecting' && (mode === 'local' || canWrite);
+    const p = edPhoto(c);
+    const editable = canEdit();
     if (!p) {
-      sec.innerHTML = `<h3>대표 사진</h3>
-        <button class="ph-drop" id="phPick" ${editable ? '' : 'disabled'}><b>사진 붙이기</b><small>${esc(byCode[c].n)} 모양대로 잘려서 지도에 들어가요</small></button>`;
+      sec.innerHTML = `<button class="ph-drop" id="phPick" ${editable ? '' : 'disabled'}><b>사진 붙이기</b><small>${esc(byCode[c].n)} 모양대로 잘려서 지도에 들어가요</small></button>`;
       $('phPick').onclick = () => $('photoFile').click();
       return;
     }
-    sec.innerHTML = `<h3>대표 사진</h3>
+    sec.innerHTML = `
       <div class="photo-card">
         <div class="ph-stage ${editing ? 'editing' : 'viewable'}" id="phStage">
           <svg id="phSvg" aria-label="${esc(byCode[c].n)} 사진 미리보기"></svg>
@@ -724,14 +903,13 @@ const firebaseConfig = {
     if (editing) {
       $('phZoom').oninput = (e) => { photoEdit.p.s = +e.target.value; clampPhoto(c, photoEdit.p); updateEditor(); };
       $('phSave').onclick = savePhotoEdit;
-      $('phCancel').onclick = () => { photoEdit = null; paintPhotos(); renderPhotoSec(); };
+      $('phCancel').onclick = () => { photoEdit = null; paintPhotos(); renderTripSec(); };
     } else {
-      $('phEdit').onclick = () => { photoEdit = { c, p: { ...photos[c] }, isNew: false }; renderPhotoSec(); };
-      $('phStage').onclick = () => openLightbox(c);
-      let armed = false;
-      $('phDel').onclick = async (e) => {
-        if (!armed) { armed = true; e.target.textContent = '한 번 더 누르면 빠져요'; setTimeout(() => { armed = false; if (e.target.isConnected) e.target.textContent = '사진 빼기'; }, 2500); return; }
-        try { await writePhoto(c, null); toast('사진을 뺐어요'); } catch (err) { toast('사진을 빼지 못했어요'); }
+      $('phEdit').onclick = () => { photoEdit = { c, tid: t.id, p: { ...tripPhoto(c, t.id) }, isNew: false }; renderTripSec(); };
+      $('phStage').onclick = () => { if (performance.now() - swipeAt > 400) openLightbox(c, t.id); };
+      $('phDel').onclick = async () => {
+        if (!await confirmBox('사진을 뺄까요?', '이 여행 사진이 지도에서도 빠져요.', '뺄래요')) return;
+        try { await writePhoto(c, t.id, null); toast('사진을 뺐어요'); } catch (err) { toast('사진을 빼지 못했어요'); }
       };
     }
   }
@@ -749,7 +927,7 @@ const firebaseConfig = {
       <image id="edImg" clip-path="url(#edClip)" preserveAspectRatio="none"></image>
       <path class="ph-edge" d="${byCode[c].d}"></path>`;
     ed = { svg: s, c, ghost: s.querySelector('#edGhost'), img: s.querySelector('#edImg') };
-    const p = photoFor(c);
+    const p = edPhoto(c);
     ed.img.setAttribute('href', p.img);
     if (ed.ghost) ed.ghost.setAttribute('href', p.img);
     updateEditor();
@@ -757,7 +935,7 @@ const firebaseConfig = {
   }
   function updateEditor() {
     if (!ed) return;
-    const p = photoFor(ed.c);
+    const p = edPhoto(ed.c);
     if (!p) return;
     const bx = photoBox(ed.c, p);
     setBox(ed.img, bx);
@@ -832,44 +1010,43 @@ const firebaseConfig = {
     e.target.value = '';
     if (!file || !selected) return;
     const c = selected;
+    const t = tripsOf(c)[curTrip(c)];
+    if (!t) return;
     const pick = $('phPick'); if (pick) { pick.classList.add('busy'); pick.querySelector('b').textContent = '사진 줄이는 중…'; }
     try {
       const sm = await shrinkPhoto(file);
-      photoEdit = { c, p: clampPhoto(c, { ...sm, ox: 0, oy: 0, s: 1 }), isNew: true };
+      photoEdit = { c, tid: t.id, p: clampPhoto(c, { ...sm, ox: 0, oy: 0, s: 1 }), isNew: true };
       paintPhotos();
-      if (selected === c) renderPhotoSec();
+      if (selected === c) renderTripSec();
     } catch (err) {
       toast('이 사진은 열 수 없어요. JPG나 PNG 사진으로 올려주세요');
-      if (selected === c) renderPhotoSec();
+      if (selected === c) renderTripSec();
     }
   });
 
-  async function writePhoto(c, rec, onlyPos) {
-    if (mode === 'shared') {
-      const r0 = fb.ref(db, 'photos/' + c);
-      if (!rec) await fb.remove(r0);
-      else if (onlyPos) await fb.update(r0, { ox: rec.ox, oy: rec.oy, s: rec.s, updatedAt: rec.updatedAt });
-      else await fb.set(r0, rec);
-    }
-    if (rec) photos[c] = rec; else delete photos[c];
-    if (mode === 'local') saveLocalPhotos();
+  async function writePhoto(c, tid, rec, onlyPos) {
+    const path = photoPath(c, tid);
+    await commit(rec && onlyPos
+      ? { [path + '/ox']: rec.ox, [path + '/oy']: rec.oy, [path + '/s']: rec.s, [path + '/updatedAt']: rec.updatedAt }
+      : { [path]: rec });
     paintPhotos();
-    if (selected === c) renderPhotoSec();
+    if (selected === c) renderTripSec();
   }
   async function savePhotoEdit() {
     if (!photoEdit) return;
-    const { c, p, isNew } = photoEdit;
+    const { c, tid, p, isNew } = photoEdit;
     const rec = { img: p.img, w: p.w, h: p.h, ox: +p.ox.toFixed(4), oy: +p.oy.toFixed(4), s: +p.s.toFixed(3), updatedAt: new Date().toISOString() };
-    photoEdit.saving = true; renderPhotoSec();
+    photoEdit.saving = true; renderTripSec();
     try {
-      const onlyPos = !isNew && photos[c] && photos[c].img === p.img;
+      const old = tripPhoto(c, tid);
+      const onlyPos = !isNew && old && old.img === p.img;
       photoEdit = null;
-      await writePhoto(c, rec, onlyPos);
+      await writePhoto(c, tid, rec, onlyPos);
       toast(`${byCode[c].n}에 사진을 붙였어요`);
     } catch (err) {
-      photoEdit = { c, p, isNew };
-      renderPhotoSec();
-      toast(/permission/i.test(String(err && (err.code || err.message))) ? '사진 저장 권한이 없어요. 보안 규칙을 확인해 주세요' : '사진을 저장하지 못했어요. 잠시 뒤 다시 눌러주세요');
+      photoEdit = { c, tid, p, isNew };
+      renderTripSec();
+      toast(saveErr(err, tid !== 't0'));
     }
   }
 
@@ -893,6 +1070,7 @@ const firebaseConfig = {
     const changed = selected !== c;
     stashDraft();
     selected = c; draft = drafts[c] || null; delete drafts[c];
+    if (changed) tripForm = null;
     setSheet(true);
     paint(); render();
     if (changed) { swapIn(); $('pbody').scrollTop = 0; }
@@ -901,7 +1079,7 @@ const firebaseConfig = {
   function showOverview(sheetOpen) {
     const changed = !!selected;
     stashDraft();
-    selected = null; draft = null;
+    selected = null; draft = null; tripForm = null;
     setSheet(sheetOpen);
     paint(); render();
     if (changed) { swapIn(); $('pbody').scrollTop = 0; }
@@ -923,14 +1101,14 @@ const firebaseConfig = {
     if (s.c || s.sheet) history.back();
     else showOverview(false);
   }
-  function openLightbox(c) {
-    const p = photos[c]; if (!p) return;
-    const r = byCode[c], v = visits[c];
+  function openLightbox(c, id) {
+    const p = tripPhoto(c, id); if (!p) return;
+    const r = byCode[c], list = tripsOf(c), i = list.findIndex(t => t.id === id), t = list[i];
     $('lbImg').src = p.img;
     $('lbImg').alt = `${r.n} 사진`;
     $('lbTitle').textContent = r.n;
-    $('lbSub').textContent = [r.g === r.n ? '' : r.g, v?.date ? fmtDate(v.date) : ''].filter(Boolean).join(' · ');
-    $('lbMemo').textContent = v?.memo || '';
+    $('lbSub').textContent = [r.g === r.n ? '' : r.g, list.length > 1 ? `${i + 1}번째 여행` : '', t?.date ? fmtDate(t.date) : ''].filter(Boolean).join(' · ');
+    $('lbMemo').textContent = t?.memo || '';
     $('lightbox').hidden = false;
     history.pushState({ ...(history.state || {}), lb: 1 }, '');
     $('lbClose').focus();
@@ -951,42 +1129,165 @@ const firebaseConfig = {
   }
 
   // ---------- storage ----------
-  const LKEY = 'korea-coloring-map-v1';
-  function loadLocal() { try { visits = JSON.parse(localStorage.getItem(LKEY) || '{}') || {}; } catch (e) { visits = {}; } }
-  function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify(visits)); } catch (e) {} }
-  const PKEY = 'korea-coloring-map-photos-v1';
-  function loadLocalPhotos() { try { photos = JSON.parse(localStorage.getItem(PKEY) || '{}') || {}; } catch (e) { photos = {}; } }
-  function saveLocalPhotos() { try { localStorage.setItem(PKEY, JSON.stringify(photos)); } catch (e) { toast('이 기기 저장 공간이 부족해서 사진은 새로고침하면 사라져요'); } }
+  const LKEY = 'korea-coloring-map-v1', TKEY = 'korea-coloring-map-trips-v1';
+  function loadLocal() {
+    try { visits = JSON.parse(localStorage.getItem(LKEY) || '{}') || {}; } catch (e) { visits = {}; }
+    try { trips = JSON.parse(localStorage.getItem(TKEY) || '{}') || {}; } catch (e) { trips = {}; }
+  }
+  function saveLocal() { try { localStorage.setItem(LKEY, JSON.stringify(visits)); localStorage.setItem(TKEY, JSON.stringify(trips)); } catch (e) {} }
+  const PKEY = 'korea-coloring-map-photos-v1', TPKEY = 'korea-coloring-map-tripphotos-v1';
+  function loadLocalPhotos() {
+    try { photos = JSON.parse(localStorage.getItem(PKEY) || '{}') || {}; } catch (e) { photos = {}; }
+    try { tripPhotos = JSON.parse(localStorage.getItem(TPKEY) || '{}') || {}; } catch (e) { tripPhotos = {}; }
+  }
+  function saveLocalPhotos() { try { localStorage.setItem(PKEY, JSON.stringify(photos)); localStorage.setItem(TPKEY, JSON.stringify(tripPhotos)); } catch (e) { toast('이 기기 저장 공간이 부족해서 사진은 새로고침하면 사라져요'); } }
+
+  // Write several paths at once ({'visits/c/color': 'mint', 'trips/c': null, ...}).
+  function applyPatch(u) {
+    const st = { visits, photos, trips, tripPhotos };
+    for (const [path, val] of Object.entries(u)) {
+      const ks = path.split('/');
+      let o = st;
+      for (let i = 0; i < ks.length - 1 && o; i++) {
+        if (o[ks[i]] == null || typeof o[ks[i]] !== 'object') { if (val === null) { o = null; break; } o[ks[i]] = {}; }
+        o = o[ks[i]];
+      }
+      if (!o) continue;
+      const k = ks[ks.length - 1];
+      if (val === null) delete o[k]; else o[k] = val;
+    }
+    for (const top of [trips, tripPhotos]) for (const k in top) if (!top[k] || !Object.keys(top[k]).length) delete top[k];
+  }
+  async function commit(u) {
+    if (mode === 'shared') await fb.update(fb.ref(db), u);
+    applyPatch(u);
+    if (mode === 'local') {
+      saveLocal();
+      if (Object.keys(u).some(k => /^(photos|tripPhotos)\//.test(k))) saveLocalPhotos();
+    }
+  }
+  function saveErr(e, newPath) {
+    if (e && /permission/i.test(String(e.code || e.message))) {
+      return newPath ? '저장 권한이 없어요. Firebase 보안 규칙에 trips·tripPhotos 허용을 추가해 주세요' : '저장 권한이 없어요. 보안 규칙을 확인해 주세요';
+    }
+    return '저장하지 못했어요. 잠시 뒤 다시 눌러주세요';
+  }
+  async function run(u, okMsg) {
+    try {
+      await commit(u);
+      paint(); render();
+      if (okMsg) toast(okMsg);
+      return true;
+    } catch (e) {
+      toast(saveErr(e, Object.keys(u).some(k => /^(trips|tripPhotos)\//.test(k) && u[k] !== null)));
+      return false;
+    }
+  }
+  // everything a region holds besides its visit record
+  function wipePatch(c) {
+    const u = {};
+    if (photos[c]) u['photos/' + c] = null;
+    if (trips[c]) u['trips/' + c] = null;
+    if (tripPhotos[c]) u['tripPhotos/' + c] = null;
+    return u;
+  }
+  const latest = (dates) => dates.reduce((m, d) => (d > m ? d : m), '');
+
+  // ---------- confirm dialog ----------
+  let cfDone = null;
+  function confirmBox(title, body, yes = '지울래요') {
+    if (cfDone) cfDone(false);
+    const back = document.activeElement;
+    $('cfTitle').textContent = title;
+    $('cfBody').textContent = body || '';
+    $('cfBody').hidden = !body;
+    $('cfYes').textContent = yes;
+    $('confirm').hidden = false;
+    $('cfNo').focus();
+    return new Promise(res => {
+      cfDone = (ok) => { cfDone = null; $('confirm').hidden = true; if (back && back.isConnected) back.focus(); res(ok); };
+    });
+  }
+  $('cfYes').onclick = () => cfDone && cfDone(true);
+  $('cfNo').onclick = () => cfDone && cfDone(false);
+  $('confirm').addEventListener('click', (e) => { if (e.target.id === 'confirm' && cfDone) cfDone(false); });
 
   async function saveDraft() {
-    const c = selected; const r = byCode[c];
-    const btn = $('save'); btn.disabled = true;
-    const rec = draft.status === 'none' ? null : {
-      status: draft.status,
-      date: draft.status === 'visited' ? (draft.date || today()) : '',
-      color: draft.status === 'visited' ? draft.color : '',
-      memo: draft.status === 'visited' ? draft.memo.slice(0, 2000) : '',
-      updatedAt: new Date().toISOString(),
-    };
-    try {
-      if (mode === 'shared') {
-        const r0 = fb.ref(db, 'visits/' + c);
-        if (rec) await fb.set(r0, rec); else await fb.remove(r0);
-      }
-      if (rec) visits[c] = rec; else delete visits[c];
-      delete drafts[c];
-      if (!rec || rec.status !== 'visited') {
-        if (photoEdit && photoEdit.c === c) photoEdit = null;
-        if (photos[c]) { try { await writePhoto(c, null); } catch (e) {} }
-      }
-      if (mode === 'local') saveLocal();
-      draft = null; paint(); render();
-      toast(rec ? (rec.status === 'visited' ? `${r.n}을(를) 칠했어요` : `${r.n}을(를) 가고 싶은 곳에 담았어요`) : `${r.n} 기록을 지웠어요`);
-    } catch (e) {
-      btn.disabled = false;
-      if (e && /permission/i.test(String(e.code || e.message))) { canWrite = false; render(); toast('저장 권한이 없어요. 보안 규칙을 확인해 주세요'); }
-      else toast('저장하지 못했어요. 잠시 뒤 다시 눌러주세요');
+    const c = selected, r = byCode[c], v = visits[c];
+    const st = v?.status || 'none', to = draft.status;
+    const now = new Date().toISOString();
+    if (to === st && to !== 'visited') return;
+    if (st === 'visited' && to !== 'visited') {
+      const n = tripsOf(c).length, nPh = tripsOf(c).filter(t => tripPhoto(c, t.id)).length;
+      const what = `${n > 1 ? `여행 ${n}번의 ` : ''}날짜·메모${nPh ? `와 사진 ${nPh}장` : ''}`;
+      const ok = to === 'none'
+        ? await confirmBox(`${r.n} 기록을 지울까요?`, `${what}이 모두 지워지고 색칠도 사라져요. 되돌릴 수 없어요.`)
+        : await confirmBox(`가고 싶은 곳으로 바꿀까요?`, `${what}이 모두 지워져요. 되돌릴 수 없어요.`, '바꿀래요');
+      if (!ok) return;
+    } else if (st === 'wish' && to === 'none') {
+      if (!await confirmBox(`${r.n}을(를) 가고 싶은 곳에서 뺄까요?`, '', '뺄래요')) return;
     }
+    $('save').disabled = true;
+    let u, msg;
+    if (to === 'none') { u = { ['visits/' + c]: null, ...wipePatch(c) }; msg = `${r.n} 기록을 지웠어요`; }
+    else if (to === 'wish') { u = { ['visits/' + c]: { status: 'wish', date: '', color: '', memo: '', updatedAt: now }, ...wipePatch(c) }; msg = `${r.n}을(를) 가고 싶은 곳에 담았어요`; }
+    else if (st === 'visited') { u = { [`visits/${c}/color`]: draft.color, [`visits/${c}/updatedAt`]: now }; msg = '색을 바꿨어요'; }
+    else {
+      u = { ['visits/' + c]: { status: 'visited', date: draft.date || today(), color: draft.color, memo: draft.memo.slice(0, 2000), updatedAt: now }, ...wipePatch(c) };
+      msg = `${r.n}을(를) 칠했어요`;
+    }
+    if (photoEdit && photoEdit.c === c && to !== 'visited') photoEdit = null;
+    const saved = draft;
+    draft = null;
+    if (await run(u, msg)) { delete drafts[c]; delete tripCur[c]; }
+    else { draft = saved; render(); }
+  }
+
+  async function saveTrip() {
+    const f = tripForm; if (!f || f.saving) return;
+    const c = f.c, r = byCode[c], list = tripsOf(c);
+    const now = new Date().toISOString();
+    const date = f.date || today(), memo = f.memo.slice(0, 2000);
+    const u = {};
+    let id = f.tid;
+    if (!id) {
+      id = 't' + Date.now().toString(36);
+      // first time a region gets a second trip: move the original one into trips/ too
+      if (!tripsStored(c) && list[0]) u[`trips/${c}/t0`] = { date: list[0].date, memo: list[0].memo, updatedAt: visits[c].updatedAt || now };
+      u[`trips/${c}/${id}`] = { date, memo, updatedAt: now };
+    } else if (!tripsStored(c)) {
+      u[`visits/${c}/memo`] = memo;
+    } else {
+      u[`trips/${c}/${id}`] = { date, memo, updatedAt: now };
+    }
+    u[`visits/${c}/date`] = latest([...list.filter(t => t.id !== id).map(t => t.date), date]);
+    u[`visits/${c}/updatedAt`] = now;
+    f.saving = true; renderTripSec();
+    tripForm = null;
+    if (await run(u, f.tid ? '여행 기록을 고쳤어요' : `${r.n} ${list.length + 1}번째 여행을 남겼어요`)) {
+      tripCur[c] = id;
+      if (selected === c) renderTripSec(f.tid ? 0 : 1);
+    } else { f.saving = false; tripForm = f; renderTripSec(); }
+  }
+
+  async function deleteTrip(c, id) {
+    const r = byCode[c], list = tripsOf(c), t = list.find(x => x.id === id);
+    if (!t) return;
+    const ph = !!tripPhoto(c, id);
+    if (list.length <= 1) {
+      if (!await confirmBox(`${r.n} 기록을 지울까요?`, `하나뿐인 여행이라 지우면 ${r.n} 색칠도 사라져요.${ph ? ' 붙여둔 사진도 같이 지워져요.' : ''} 되돌릴 수 없어요.`)) return;
+      if (photoEdit && photoEdit.c === c) photoEdit = null;
+      draft = null;
+      if (await run({ ['visits/' + c]: null, ...wipePatch(c) }, `${r.n} 기록을 지웠어요`)) delete tripCur[c];
+      return;
+    }
+    const i = list.indexOf(t);
+    if (!await confirmBox(`${list.length > 1 ? `${i + 1}번째 ` : ''}여행을 지울까요?`, `${t.date ? fmtDate(t.date) + ' ' : ''}여행의 메모${ph ? '와 사진이' : '가'} 지워져요. 되돌릴 수 없어요.`)) return;
+    const rest = list.filter(x => x.id !== id);
+    const u = { [`trips/${c}/${id}`]: null, [`visits/${c}/date`]: latest(rest.map(x => x.date)), [`visits/${c}/updatedAt`]: new Date().toISOString() };
+    if (ph) u[photoPath(c, id)] = null;
+    if (await run(u, '여행을 지웠어요')) tripCur[c] = rest[Math.min(i, rest.length - 1)].id;
+    if (selected === c) renderTripSec();
   }
 
   // ---------- search ----------
@@ -1054,6 +1355,9 @@ const firebaseConfig = {
     el.addEventListener('pointercancel', end);
   }
   document.addEventListener('keydown', (e) => {
+    if (cfDone) { if (e.key === 'Escape') cfDone(false); return; }
+    const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '');
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && selected && !typing && $('lightbox').hidden) { goTrip(selected, e.key === 'ArrowRight' ? 1 : -1); return; }
     if (e.key !== 'Escape' || document.activeElement?.tagName === 'TEXTAREA') return;
     if (!$('lightbox').hidden) { closeLightbox(); return; }
     if (selected || (isMobile() && panel.classList.contains('open'))) goBack();
@@ -1087,9 +1391,17 @@ const firebaseConfig = {
       for (const k in v) if (byCode[k] && v[k] && v[k].img) next[k] = v[k];
       photos = next;
       paintPhotos();
-      if (selected && !(photoEdit && photoEdit.c === selected)) renderPhotoSec();
+      if (selected && !tripForm && !(photoEdit && photoEdit.c === selected)) renderTripSec();
       renderPeek();
     }, () => {});
+    const keep = (v) => { const next = {}; for (const k in v || {}) if (byCode[k] && v[k] && typeof v[k] === 'object') next[k] = v[k]; return next; };
+    const synced = () => {
+      paint();
+      if (!selected) render();
+      else { renderPeek(); if (!tripForm && !(photoEdit && photoEdit.c === selected)) renderTripSec(); }
+    };
+    fb.onValue(fb.ref(db, 'trips'), (snap) => { trips = keep(snap.val()); synced(); }, () => {});
+    fb.onValue(fb.ref(db, 'tripPhotos'), (snap) => { tripPhotos = keep(snap.val()); synced(); }, () => {});
   } catch (e) { mode = 'local'; loadLocal(); loadLocalPhotos(); paint(); render(); }
   })();
 })();
