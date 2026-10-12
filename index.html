@@ -421,14 +421,14 @@ const firebaseConfig = {
     const s = Math.min(W / MAP.w, (H - top) / MAP.h) * 0.96;
     fitS = s;
     const target = { s, x: (W - MAP.w * s) / 2, y: top + (H - top - MAP.h * s) / 2 };
-    if (animate) animateTo(target); else { stopAnim(); view = target; apply(); }
+    if (animate) animateTo(target); else { stopAnim(); view = target; apply(); viewSlack = slackOf(view); }
   }
   let anim = 0;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   function stopAnim() { if (anim) { cancelAnimationFrame(anim); anim = 0; } }
   function animateTo(target, ms = 460) {
     stopAnim();
-    if (reduceMotion.matches) { view = { ...target }; apply(); return; }
+    if (reduceMotion.matches) { view = { ...target }; apply(); viewSlack = slackOf(view); return; }
     const W = stage.clientWidth / 2, H = stage.clientHeight / 2;
     const from = { ...view };
     const c0 = { x: (W - from.x) / from.s, y: (H - from.y) / from.s };
@@ -442,6 +442,7 @@ const firebaseConfig = {
       view = { s, x: W - cx * s, y: H - cy * s };
       apply();
       anim = t < 1 ? requestAnimationFrame(step) : 0;
+      if (t >= 1) viewSlack = slackOf(view);
     };
     anim = requestAnimationFrame(step);
   }
@@ -472,25 +473,38 @@ const firebaseConfig = {
   }
   // Keep Korea from drifting away: most of the map stays on screen, and once zoomed
   // in past the screen its edge can't come in more than a quarter of the screen.
-  // `from` (a view already out of bounds, e.g. after focusing an island) is allowed
-  // to stay where it is, so dragging never makes the map jump.
-  function clampView(v, from) {
+  // `slack` lets a view that was put out of bounds on purpose (e.g. focusing an island)
+  // stay there, so touching the map never makes it jump.
+  const NO_SLACK = { l: 0, r: 0, t: 0, b: 0 };
+  let viewSlack = NO_SLACK;
+  function boundsFor(s, slack = NO_SLACK) {
     const W = stage.clientWidth, top = 60, H = stage.clientHeight - bottomInset();
-    const mw = MAP.w * v.s, mh = MAP.h * v.s;
+    const mw = MAP.w * s, mh = MAP.h * s;
     const kx = Math.min(mw, W) * 0.75, ky = Math.min(mh, H - top) * 0.75;
-    let x0 = kx - mw, x1 = W - kx, y0 = top + ky - mh, y1 = H - ky;
-    if (from && from.s === v.s) {
-      x0 = Math.min(x0, from.x); x1 = Math.max(x1, from.x);
-      y0 = Math.min(y0, from.y); y1 = Math.max(y1, from.y);
-    }
-    v.x = Math.min(x1, Math.max(x0, v.x));
-    v.y = Math.min(y1, Math.max(y0, v.y));
+    return { x0: kx - mw - slack.l, x1: W - kx + slack.r, y0: top + ky - mh - slack.t, y1: H - ky + slack.b };
+  }
+  function slackOf(v) {
+    const b = boundsFor(v.s);
+    return { l: Math.max(0, b.x0 - v.x), r: Math.max(0, v.x - b.x1), t: Math.max(0, b.y0 - v.y), b: Math.max(0, v.y - b.y1) };
+  }
+  function clampView(v, slack = viewSlack) {
+    const b = boundsFor(v.s, slack);
+    v.x = Math.min(b.x1, Math.max(b.x0, v.x));
+    v.y = Math.min(b.y1, Math.max(b.y0, v.y));
     return v;
   }
+  // Past an edge the map follows the finger less and less, like a rubber band.
+  const rb = (d, dim) => (d * dim * 0.55) / (dim + 0.55 * d);
+  function rubber(v, lo, hi, dim) { return v < lo ? lo - rb(lo - v, dim) : v > hi ? hi + rb(v - hi, dim) : v; }
+  const zMin = () => fitS * 0.8, zMax = () => fitS * 14;
+  function rubberZoom(s) {
+    const lo = zMin(), hi = zMax();
+    return s > hi ? hi * Math.pow(s / hi, 0.3) : s < lo ? lo * Math.pow(s / lo, 0.3) : s;
+  }
   function zoomAt(factor, cx, cy, animate) {
-    const ns = Math.max(fitS * 0.8, Math.min(fitS * 14, view.s * factor));
+    const ns = Math.max(zMin(), Math.min(zMax(), view.s * factor));
     const k = ns / view.s;
-    const target = clampView({ s: ns, x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k }, view);
+    const target = clampView({ s: ns, x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k });
     if (animate) animateTo(target, 300); else { stopAnim(); view = target; apply(); }
   }
   function center() { return [stage.clientWidth / 2, (stage.clientHeight - bottomInset()) / 2]; }
@@ -504,43 +518,112 @@ const firebaseConfig = {
     zoomAt(Math.exp(-e.deltaY * 0.0018), e.clientX - rect.left, e.clientY - rect.top);
   }, { passive: false });
 
-  const pointers = new Map();
-  let dragStart = null, moved = 0, pinch = null;
-  svg.addEventListener('pointerdown', (e) => {
+  // After a drag: keep gliding and slow down, springing back if it ran past an edge.
+  function glide(vx, vy) {
     stopAnim();
+    const b = boundsFor(view.s, viewSlack);
+    if (reduceMotion.matches) { clampView(view); apply(); return; }
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const axes = [{ k: 'x', v: vx, lo: b.x0, hi: b.x1 }, { k: 'y', v: vy, lo: b.y0, hi: b.y1 }];
+    let last = performance.now();
+    const step = (now) => {
+      const dt = Math.min(32, Math.max(1, now - last)); last = now;
+      let moving = false;
+      for (const a of axes) {
+        let p = view[a.k];
+        const out = p < a.lo ? a.lo : p > a.hi ? a.hi : null;
+        if (out === null) a.v *= Math.pow(0.9965, dt);
+        else { const w = 0.022; a.v += (-w * w * (p - out) - 2 * w * a.v) * dt; }
+        p += a.v * dt;
+        if (Math.abs(a.v) > 0.015 || (out !== null && Math.abs(p - out) > 0.5)) moving = true;
+        else { a.v = 0; if (out !== null) p = out; }
+        view[a.k] = p;
+      }
+      apply();
+      anim = moving ? requestAnimationFrame(step) : 0;
+    };
+    anim = requestAnimationFrame(step);
+  }
+
+  const pointers = new Map();
+  let dragStart = null, moved = 0, pinch = null, samples = [];
+  function startDrag(x, y) {
+    dragStart = { x, y, vx: view.x, vy: view.y };
+    samples = [{ t: performance.now(), x, y }];
+  }
+  svg.addEventListener('pointerdown', (e) => {
+    const wasMoving = !!anim;
+    stopAnim();
+    if (!pointers.size) {
+      // a touch that catches the map mid-glide or mid-bounce must not keep its overshoot
+      const sl = slackOf(view);
+      viewSlack = { l: Math.min(sl.l, viewSlack.l), r: Math.min(sl.r, viewSlack.r), t: Math.min(sl.t, viewSlack.t), b: Math.min(sl.b, viewSlack.b) };
+    }
     svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 1) { dragStart = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }; moved = 0; }
+    if (pointers.size === 1) { startDrag(e.clientX, e.clientY); moved = wasMoving ? 99 : 0; }
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
-      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: view.s };
+      const rect = svg.getBoundingClientRect();
+      const mx = (a.x + b.x) / 2 - rect.left, my = (a.y + b.y) / 2 - rect.top;
+      pinch = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), s: view.s, wx: (mx - view.x) / view.s, wy: (my - view.y) / view.s, mx, my };
       moved = 99;
     }
   });
   svg.addEventListener('pointermove', (e) => {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const rect = svg.getBoundingClientRect();
+    const W = stage.clientWidth, H = stage.clientHeight;
     if (pointers.size === 2 && pinch) {
+      // pinch: zoom around the fingers and follow them as they move together
       const [a, b] = [...pointers.values()];
-      const d = Math.hypot(a.x - b.x, a.y - b.y);
-      const cx = (a.x + b.x) / 2 - rect.left, cy = (a.y + b.y) / 2 - rect.top;
-      zoomAt((pinch.s * d / pinch.d) / view.s, cx, cy);
+      const rect = svg.getBoundingClientRect();
+      const mx = (a.x + b.x) / 2 - rect.left, my = (a.y + b.y) / 2 - rect.top;
+      const s = rubberZoom(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d);
+      const bd = boundsFor(s, viewSlack);
+      view = { s, x: rubber(mx - pinch.wx * s, bd.x0, bd.x1, W), y: rubber(my - pinch.wy * s, bd.y0, bd.y1, H) };
+      pinch.mx = mx; pinch.my = my;
+      apply();
       return;
     }
     if (pointers.size === 1 && dragStart) {
       const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
       moved = Math.max(moved, Math.hypot(dx, dy));
+      const t = performance.now();
+      samples.push({ t, x: e.clientX, y: e.clientY });
+      while (samples.length > 2 && t - samples[0].t > 100) samples.shift();
       if (moved > 4) {
         svg.classList.add('dragging');
-        view.x = dragStart.vx + dx; view.y = dragStart.vy + dy; clampView(view, { s: view.s, x: dragStart.vx, y: dragStart.vy }); apply();
+        const bd = boundsFor(view.s, viewSlack);
+        view.x = rubber(dragStart.vx + dx, bd.x0, bd.x1, W);
+        view.y = rubber(dragStart.vy + dy, bd.y0, bd.y1, H);
+        apply();
       }
     }
   });
+  function release(lastPinch) {
+    const lo = zMin(), hi = zMax();
+    if (view.s < lo - 1e-9 || view.s > hi + 1e-9) {
+      // zoomed past the limit: ease back, keeping the spot between the fingers in place
+      const ns = Math.min(hi, Math.max(lo, view.s)), k = ns / view.s;
+      const m = lastPinch || { mx: center()[0], my: center()[1] };
+      animateTo(clampView({ s: ns, x: m.mx - (m.mx - view.x) * k, y: m.my - (m.my - view.y) * k }), 320);
+      return;
+    }
+    let vx = 0, vy = 0;
+    const a = samples[0], z = samples[samples.length - 1];
+    if (a && z && z.t - a.t > 10 && performance.now() - z.t < 80) {
+      vx = (z.x - a.x) / (z.t - a.t); vy = (z.y - a.y) / (z.t - a.t);
+      const sp = Math.hypot(vx, vy), cap = 4;
+      if (sp > cap) { vx *= cap / sp; vy *= cap / sp; }
+    }
+    glide(vx, vy);
+  }
+  let lastPinch = null;
   function endPointer(e) {
     if (!pointers.has(e.pointerId)) return;
     pointers.delete(e.pointerId);
-    if (pointers.size < 2) pinch = null;
+    if (pointers.size < 2 && pinch) { lastPinch = pinch; pinch = null; }
     if (pointers.size === 0) {
       svg.classList.remove('dragging');
       if (moved <= 4 && e.type === 'pointerup') {
@@ -548,11 +631,11 @@ const firebaseConfig = {
         const p = hit && hit.closest && hit.closest('.rg');
         if (p) openRegion(p.dataset.c, false);
         else if (selected || (isMobile() && $('panel').classList.contains('open'))) goBack();
-      }
-      dragStart = null;
+      } else release(lastPinch);
+      dragStart = null; lastPinch = null;
     } else if (pointers.size === 1) {
       const [p] = [...pointers.values()];
-      dragStart = { x: p.x, y: p.y, vx: view.x, vy: view.y };
+      startDrag(p.x, p.y);
     }
   }
   svg.addEventListener('pointerup', endPointer);
