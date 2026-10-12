@@ -64,7 +64,7 @@ button { cursor: pointer; }
 .brand h1 { margin: 0; font-family: var(--font-hand); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: -.5px; }
 .brand h1 .heart { color: var(--accent); margin: 0 2px; }
 .brand p { margin: 4px 0 0; color: var(--muted); font-size: 12.5px; }
-.dday { margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--panel-line); background: var(--panel); border-radius: 999px; padding: 3px 11px 3px 9px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); white-space: nowrap; }
+.dday { cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--panel-line); background: var(--panel); border-radius: 999px; padding: 3px 11px 3px 9px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); white-space: nowrap; }
 .dday .heart { color: var(--accent); font-size: 11px; }
 .dday b { font-family: var(--font-hand); font-size: 19px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
 .dd-roll { display: grid; overflow: hidden; }
@@ -264,7 +264,7 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
       <div class="brand">
         <h1>지홍<span class="heart">♥</span>온유 도장깨기</h1>
         <p>지홍이랑 온유가 같이 다녀온 시·군을 하나씩 깨요</p>
-        <div class="dday" id="dday" hidden></div>
+        <button class="dday" id="dday" type="button" hidden></button>
       </div>
       <div class="search">
         <input id="q" type="search" placeholder="지역 찾기 (예: 담양)" autocomplete="off" aria-label="지역 찾기">
@@ -1070,7 +1070,7 @@ const firebaseConfig = {
   // ---------- navigation (browser back closes things) ----------
   const drafts = {};
   // ---------- days together (first day counts as day 1) ----------
-  // The badge rolls through: days together → next 100-day mark → next anniversary.
+  // Tapping the badge rolls it through the next 100-day mark and anniversary, then back.
   const MET = [2024, 9, 13];
   function dayNum(d) { return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
   function together() {
@@ -1106,19 +1106,28 @@ const firebaseConfig = {
     </span>`;
     el.setAttribute('aria-label', [`만난 지 ${t.days}일째`, ...t.marks.map(m => `${m.name}까지 ${m.left}일`)].join(', '));
   }
-  function rollDday() {
+  let ddTimer = 0;
+  function rollTo(i) {
     const items = $('dday').querySelectorAll('.dd-roll > span');
-    if (items.length < 2 || document.hidden) return;
-    const cur = items[ddIdx];
-    ddIdx = (ddIdx + 1) % items.length;
-    const nxt = items[ddIdx];
+    if (i === ddIdx || !items[i]) return;
+    const cur = items[ddIdx], nxt = items[i];
+    ddIdx = i;
     cur.classList.remove('on'); cur.classList.add('out');
     nxt.classList.remove('out'); nxt.classList.add('on');
     setTimeout(() => cur.classList.remove('out'), 500);
   }
+  $('dday').onclick = () => {
+    const n = $('dday').querySelectorAll('.dd-roll > span').length;
+    const step = () => {
+      const i = (ddIdx + 1) % n;
+      rollTo(i);
+      ddTimer = i ? setTimeout(step, 2200) : 0;
+    };
+    clearTimeout(ddTimer);
+    step();
+  };
   renderDday();
   setInterval(renderDday, 60 * 1000);
-  setInterval(rollDday, 3200);
 
   function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
   function setSheet(open) { $('panel').classList.toggle('open', open); }
