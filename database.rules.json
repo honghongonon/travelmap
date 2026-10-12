@@ -2,63 +2,155 @@
   "rules": {
     ".read": false,
     ".write": false,
-    "visits": {
-      ".read": true,
-      "$code": {
-        ".write": "$code.matches(/^r[0-9]{3}$/)",
-        ".validate": "newData.hasChildren(['status', 'updatedAt'])",
-        "status": { ".validate": "newData.val() == 'wish' || newData.val() == 'visited'" },
-        "date": { ".validate": "newData.isString() && newData.val().length <= 10" },
-        "color": { ".validate": "newData.isString() && newData.val().length <= 10" },
-        "memo": { ".validate": "newData.isString() && newData.val().length <= 2000" },
-        "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 30" },
-        "$other": { ".validate": false }
+    "s": {
+      "$key": {
+        ".read": "$key.matches(/^[0-9a-f]{64}$/)",
+        ".write": "$key.matches(/^[0-9a-f]{64}$/)",
+        "meta": {
+          ".validate": "newData.hasChildren(['createdAt'])",
+          "createdAt": {
+            ".validate": "newData.isString() && newData.val().length <= 30"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "visits": {
+          "$code": {
+            ".validate": "$code.matches(/^r[0-9]{3}$/) && newData.hasChildren(['status', 'updatedAt'])",
+            "status": {
+              ".validate": "newData.val() == 'wish' || newData.val() == 'visited'"
+            },
+            "date": {
+              ".validate": "newData.isString() && newData.val().length <= 10"
+            },
+            "color": {
+              ".validate": "newData.isString() && newData.val().length <= 10"
+            },
+            "memo": {
+              ".validate": "newData.isString() && newData.val().length <= 2000"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString() && newData.val().length <= 30"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "photos": {
+          "$code": {
+            ".validate": "$code.matches(/^r[0-9]{3}$/) && newData.hasChildren(['img', 'w', 'h', 'ox', 'oy', 's'])",
+            "img": {
+              ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 300000"
+            },
+            "w": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000"
+            },
+            "h": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000"
+            },
+            "ox": {
+              ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100"
+            },
+            "oy": {
+              ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100"
+            },
+            "s": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString() && newData.val().length <= 30"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "trips": {
+          "$code": {
+            "$trip": {
+              ".validate": "$trip.matches(/^t[0-9a-z]{1,12}$/) && newData.hasChildren(['date', 'updatedAt'])",
+              "date": {
+                ".validate": "newData.isString() && newData.val().length <= 10"
+              },
+              "memo": {
+                ".validate": "newData.isString() && newData.val().length <= 2000"
+              },
+              "updatedAt": {
+                ".validate": "newData.isString() && newData.val().length <= 30"
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            ".validate": "$code.matches(/^r[0-9]{3}$/)"
+          }
+        },
+        "tripPhotos": {
+          "$code": {
+            "$trip": {
+              ".validate": "$trip.matches(/^t[0-9a-z]{1,12}$/) && newData.hasChildren(['img', 'w', 'h', 'ox', 'oy', 's'])",
+              "img": {
+                ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 300000"
+              },
+              "w": {
+                ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000"
+              },
+              "h": {
+                ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000"
+              },
+              "ox": {
+                ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100"
+              },
+              "oy": {
+                ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100"
+              },
+              "s": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6"
+              },
+              "updatedAt": {
+                ".validate": "newData.isString() && newData.val().length <= 30"
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            ".validate": "$code.matches(/^r[0-9]{3}$/)"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
       }
+    },
+    "lock": {
+      ".read": true,
+      ".write": "!data.exists() && newData.val() === true"
+    },
+    "visits": {
+      "$code": {
+        ".write": "!newData.exists()"
+      },
+      ".read": true
     },
     "photos": {
-      ".read": true,
       "$code": {
-        ".write": "$code.matches(/^r[0-9]{3}$/)",
-        ".validate": "newData.hasChildren(['img', 'w', 'h', 'ox', 'oy', 's'])",
-        "img": { ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 300000" },
-        "w": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000" },
-        "h": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000" },
-        "ox": { ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100" },
-        "oy": { ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100" },
-        "s": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6" },
-        "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 30" },
-        "$other": { ".validate": false }
-      }
+        ".write": "!newData.exists()"
+      },
+      ".read": true
     },
     "trips": {
-      ".read": true,
       "$code": {
-        ".write": "$code.matches(/^r[0-9]{3}$/)",
-        "$trip": {
-          ".validate": "$trip.matches(/^t[0-9a-z]{1,12}$/) && newData.hasChildren(['date', 'updatedAt'])",
-          "date": { ".validate": "newData.isString() && newData.val().length <= 10" },
-          "memo": { ".validate": "newData.isString() && newData.val().length <= 2000" },
-          "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 30" },
-          "$other": { ".validate": false }
-        }
-      }
+        ".write": "!newData.exists()"
+      },
+      ".read": true
     },
     "tripPhotos": {
-      ".read": true,
       "$code": {
-        ".write": "$code.matches(/^r[0-9]{3}$/)",
-        "$trip": {
-          ".validate": "$trip.matches(/^t[0-9a-z]{1,12}$/) && newData.hasChildren(['img', 'w', 'h', 'ox', 'oy', 's'])",
-          "img": { ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 300000" },
-          "w": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000" },
-          "h": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 2000" },
-          "ox": { ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100" },
-          "oy": { ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 100" },
-          "s": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 6" },
-          "updatedAt": { ".validate": "newData.isString() && newData.val().length <= 30" },
-          "$other": { ".validate": false }
-        }
-      }
+        ".write": "!newData.exists()"
+      },
+      ".read": true
     }
   }
 }

@@ -255,6 +255,15 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 .cf-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 @keyframes tripNext { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
 @keyframes tripPrev { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.lock { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--sea) 55%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.lock form { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 22px; box-shadow: var(--shadow); padding: 26px 22px 22px; width: min(360px, 100%); box-sizing: border-box; display: grid; gap: 12px; text-align: center; animation: swapIn .3s cubic-bezier(.2,.7,.2,1); }
+.lock h2 { margin: 0; font-family: var(--font-hand); font-size: 32px; font-weight: 700; line-height: 1.1; }
+.lock h2 .heart { color: var(--accent); margin: 0 2px; }
+.lock p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.lock input[type=password] { border: 1px solid var(--panel-line); background: var(--soft); border-radius: 12px; padding: 12px 14px; font-size: 16px; text-align: center; letter-spacing: .08em; }
+.lock .err { color: var(--accent); font-size: 12.5px; min-height: 1em; }
+.lock .save { width: 100%; }
+.lockout { justify-self: center; border: 0; background: none; color: var(--muted); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; padding: 4px 8px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 
@@ -299,6 +308,17 @@ h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted); l
 </div>
 <div class="toast" id="toast" hidden></div>
 <input type="file" id="photoFile" accept="image/*" hidden>
+<div class="lock" id="lock" hidden>
+  <form id="lockForm" autocomplete="on">
+    <h2>지홍<span class="heart">♥</span>온유</h2>
+    <p id="lockMsg">둘만 아는 비밀번호를 넣어주세요</p>
+    <input type="text" name="username" autocomplete="username" value="지홍온유" hidden>
+    <input type="password" id="lockPw" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호">
+    <input type="password" id="lockPw2" autocomplete="new-password" placeholder="한 번 더" aria-label="비밀번호 확인" hidden>
+    <div class="err" id="lockErr" role="alert"></div>
+    <button class="save" id="lockGo" type="submit">열기</button>
+  </form>
+</div>
 <div class="confirm" id="confirm" hidden role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfBody">
   <div class="cf-card"><b id="cfTitle"></b><p id="cfBody"></p><div class="cf-row"><button class="btn2" id="cfNo">아니요</button><button class="btn2 primary" id="cfYes">지울래요</button></div></div>
 </div>
@@ -362,7 +382,8 @@ const firebaseConfig = {
   let tlOpen = false;       // overview timeline expanded
   let photoEdit = null;     // {c, tid, p, isNew, saving}
   let mode = 'connecting';  // shared | local | connecting
-  let db = null, user = null, myId = null, canWrite = true;
+  let db = null, canWrite = true;
+  let base = '';             // 's/<key>/' — where this couple's records live
   let selected = null;
   let draft = null;
 
@@ -718,7 +739,13 @@ const firebaseConfig = {
       <section>
         <h3>지역별 진행</h3>
         <ul class="prov">${GROUP_ORDER.map(g => { const x = groups[g]; return `<li class="${x.v === x.t ? 'done' : ''}"><span>${g}</span><span class="mini"><i style="width:${Math.round(x.v / x.t * 100)}%"></i></span><em>${x.v}/${x.t}</em></li>`; }).join('')}</ul>
-      </section>`;
+      </section>
+      ${mode === 'shared' ? '<button class="lockout" id="lockBtn">이 기기에서 잠그기</button>' : ''}`;
+    if ($('lockBtn')) $('lockBtn').onclick = async () => {
+      if (!await confirmBox('이 기기에서 잠글까요?', '다시 보려면 비밀번호를 넣어야 해요.', '잠글래요')) return;
+      try { localStorage.removeItem(KEY_STORE); } catch (e) {}
+      location.reload();
+    };
     $('pbody').querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
       if (b.dataset.trip) tripCur[b.dataset.go] = b.dataset.trip;
       select(b.dataset.go, true);
@@ -726,7 +753,7 @@ const firebaseConfig = {
     if ($('tlMore')) $('tlMore').onclick = () => { tlOpen = !tlOpen; renderOverview(); };
   }
 
-  function canEdit() { return mode !== 'connecting' && (mode === 'local' || canWrite); }
+  function canEdit() { return mode === 'local' || (mode === 'shared' && canWrite); }
   function renderRegion() {
     const r = byCode[selected];
     const c = r.c;
@@ -1231,7 +1258,7 @@ const firebaseConfig = {
     for (const top of [trips, tripPhotos]) for (const k in top) if (!top[k] || !Object.keys(top[k]).length) delete top[k];
   }
   async function commit(u) {
-    if (mode === 'shared') await fb.update(fb.ref(db), u);
+    if (mode === 'shared') await fb.update(fb.ref(db), Object.fromEntries(Object.entries(u).map(([k, v]) => [base + k, v])));
     applyPatch(u);
     if (mode === 'local') {
       saveLocal();
@@ -1475,22 +1502,97 @@ const firebaseConfig = {
   });
   fit(); paint(); render();
 
+  // ---------- lock ----------
+  // The password never leaves the device: it is stretched into a 64-hex key, and the records
+  // live under s/<key>/ which only someone who knows the password can find (rules forbid listing s/).
+  const KEY_STORE = 'travelmap-key-v1';
+  async function deriveKey(pw) {
+    const enc = new TextEncoder();
+    const k = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('travelmap-97d65/jihong-onyu'), iterations: 200000 }, k, 256);
+    return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let lockSetup = false;
+  function showLock(msg) {
+    mode = 'locked';
+    visits = {}; photos = {}; trips = {}; tripPhotos = {};
+    paint(); render();
+    $('lock').hidden = false;
+    $('lockErr').textContent = msg || '';
+    setTimeout(() => $('lockPw').focus(), 50);
+  }
+  function setLockSetup(on) {
+    lockSetup = on;
+    $('lockPw2').hidden = !on;
+    $('lockMsg').innerHTML = on
+      ? '처음 잠그는 거예요. 이 비밀번호로 정할게요.<br>8자 이상으로, 둘 다 꼭 기억해 두세요. 잊어버리면 기록을 찾을 수 없어요.'
+      : '둘만 아는 비밀번호를 넣어주세요';
+    $('lockGo').textContent = on ? '이 비밀번호로 잠그기' : '열기';
+  }
+  // Move records saved before the lock (public paths) into the locked space, all in one write.
+  async function setupSpace(key) {
+    const OLD = ['visits', 'photos', 'trips', 'tripPhotos'];
+    const old = await Promise.all(OLD.map(k => fb.get(fb.ref(db, k)).then(sn => sn.val() || {}).catch(() => ({}))));
+    const u = { [`s/${key}/meta`]: { createdAt: new Date().toISOString() }, lock: true };
+    OLD.forEach((k, n) => {
+      const data = {};
+      for (const c in old[n]) if (byCode[c] && old[n][c]) { data[c] = old[n][c]; u[`${k}/${c}`] = null; }
+      if (Object.keys(data).length) u[`s/${key}/${k}`] = data;
+    });
+    await fb.update(fb.ref(db), u);
+  }
+  $('lockForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pw = $('lockPw').value;
+    if (!pw) return;
+    const go = $('lockGo'), err = $('lockErr');
+    if (lockSetup) {
+      if (pw.length < 8) { err.textContent = '8자 이상으로 정해주세요'; return; }
+      if (pw !== $('lockPw2').value) { err.textContent = '두 비밀번호가 달라요'; return; }
+    }
+    go.disabled = true; err.textContent = '';
+    const label = go.textContent; go.textContent = '여는 중…';
+    try {
+      const key = await deriveKey(pw);
+      if (lockSetup) await setupSpace(key);
+      else if (!(await fb.get(fb.ref(db, `s/${key}/meta`))).exists()) {
+        const locked = (await fb.get(fb.ref(db, 'lock'))).exists();
+        if (!locked) { setLockSetup(true); $('lockPw2').focus(); return; }
+        err.textContent = '비밀번호가 달라요';
+        $('lockPw').select();
+        return;
+      }
+      try { localStorage.setItem(KEY_STORE, key); } catch (e2) {}
+      $('lock').hidden = true;
+      $('lockPw').value = $('lockPw2').value = '';
+      setLockSetup(false);
+      start(key);
+    } catch (e2) {
+      err.textContent = /permission/i.test(String(e2 && (e2.code || e2.message)))
+        ? 'Firebase 규칙이 아직 게시되지 않았어요. 규칙을 먼저 게시해 주세요'
+        : '열지 못했어요. 인터넷 연결을 확인해 주세요';
+    } finally {
+      go.disabled = false;
+      if (go.textContent === '여는 중…') go.textContent = lockSetup ? '이 비밀번호로 잠그기' : label;
+    }
+  });
+
   // ---------- connect ----------
-  (async () => {
-  try {
-    const [appMod, dbMod] = await Promise.all([import(FB + 'firebase-app.js'), import(FB + 'firebase-database.js')]);
-    fb = dbMod;
-    db = fb.getDatabase(appMod.initializeApp(firebaseConfig));
-    mode = 'shared';
-    fb.onValue(fb.ref(db, 'visits'), (snap) => {
+  let subs = [];
+  function start(key) {
+    base = `s/${key}/`;
+    mode = 'shared'; canWrite = true;
+    subs.forEach(off => off()); subs = [];
+    const denied = () => { try { localStorage.removeItem(KEY_STORE); } catch (e) {} subs.forEach(off => off()); subs = []; showLock('다시 비밀번호를 넣어주세요'); };
+    subs.push(fb.onValue(fb.ref(db, base + 'visits'), (snap) => {
       const v = snap.val() || {};
       const next = {};
       for (const k in v) if (byCode[k] && v[k] && v[k].status) next[k] = v[k];
       visits = next;
       paint();
       if (selected && draft) renderPeek(); else render();
-    }, () => { mode = 'local'; loadLocal(); loadLocalPhotos(); paint(); render(); });
-    fb.onValue(fb.ref(db, 'photos'), (snap) => {
+    }, denied));
+    subs.push(fb.onValue(fb.ref(db, base + 'photos'), (snap) => {
       const v = snap.val() || {};
       const next = {};
       for (const k in v) if (byCode[k] && v[k] && v[k].img) next[k] = v[k];
@@ -1498,15 +1600,24 @@ const firebaseConfig = {
       paintPhotos();
       if (selected && !tripForm && !(photoEdit && photoEdit.c === selected)) renderTripSec();
       renderPeek();
-    }, () => {});
+    }, () => {}));
     const keep = (v) => { const next = {}; for (const k in v || {}) if (byCode[k] && v[k] && typeof v[k] === 'object') next[k] = v[k]; return next; };
     const synced = () => {
       paint();
       if (!selected) render();
       else { renderPeek(); if (!tripForm && !(photoEdit && photoEdit.c === selected)) renderTripSec(); }
     };
-    fb.onValue(fb.ref(db, 'trips'), (snap) => { trips = keep(snap.val()); synced(); }, () => {});
-    fb.onValue(fb.ref(db, 'tripPhotos'), (snap) => { tripPhotos = keep(snap.val()); synced(); }, () => {});
+    subs.push(fb.onValue(fb.ref(db, base + 'trips'), (snap) => { trips = keep(snap.val()); synced(); }, () => {}));
+    subs.push(fb.onValue(fb.ref(db, base + 'tripPhotos'), (snap) => { tripPhotos = keep(snap.val()); synced(); }, () => {}));
+  }
+  (async () => {
+  try {
+    const [appMod, dbMod] = await Promise.all([import(FB + 'firebase-app.js'), import(FB + 'firebase-database.js')]);
+    fb = dbMod;
+    db = fb.getDatabase(appMod.initializeApp(firebaseConfig));
+    let key = null;
+    try { key = localStorage.getItem(KEY_STORE); } catch (e) {}
+    if (key && /^[0-9a-f]{64}$/.test(key)) start(key); else showLock();
   } catch (e) { mode = 'local'; loadLocal(); loadLocalPhotos(); paint(); render(); }
   })();
 })();
